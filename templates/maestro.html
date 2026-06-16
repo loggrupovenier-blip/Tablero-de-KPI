@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Maestro de KPI</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f4f4f4; }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .separador-row { background-color: #ffa500 !important; color: black; }
+        .btn { padding: 6px 12px; margin: 2px; cursor: pointer; border: none; border-radius: 4px; }
+        .btn-editar { background-color: #3498db; color: white; }
+        .btn-eliminar { background-color: #e74c3c; color: white; }
+        .btn-agregar { background-color: #2ecc71; color: white; margin-bottom: 10px; }
+        .btn-volver { background-color: #95a5a6; color: white; margin-bottom: 10px; }
+        .btn-separador { background-color: #f39c12; color: white; }
+        .btn-mover { background-color: #7f8c8d; color: white; }
+        .modal { display: none; position: fixed; z-index: 1; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4); }
+        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 700px; border-radius: 8px; }
+        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
+        .close:hover { color: black; }
+        input, select, textarea { width: 100%; padding: 6px; margin: 4px 0 12px; border: 1px solid #ccc; border-radius: 4px; }
+        label { font-weight: bold; }
+        .advertencia { background-color: #fcf8e3; border-left: 5px solid #f0ad4e; padding: 10px; margin-bottom: 15px; }
+        .periodicidad-checkbox-group label { font-weight: normal; margin-right: 15px; display: inline-block; }
+        .periodicidad-checkbox-group input { width: auto; margin-right: 5px; }
+        .required { color: red; }
+        .periodos-section { margin-top: 15px; border-top: 1px solid #ddd; padding-top: 10px; }
+        .periodos-section h4 { margin: 0 0 8px 0; color: #2c3e50; }
+        .periodo-item { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; background: #f0f4f8; padding: 6px 10px; border-radius: 4px; }
+        .periodo-item span { flex: 1; font-size: 13px; }
+        .btn-del-periodo { background: #e74c3c; color: white; border: none; border-radius: 4px; padding: 3px 8px; cursor: pointer; font-size: 12px; }
+        .add-periodo-row { display: flex; gap: 6px; align-items: center; margin-top: 8px; flex-wrap: wrap; }
+        .add-periodo-row input { width: auto; flex: 1; min-width: 120px; margin: 0; }
+        .btn-add-periodo { background: #27ae60; color: white; border: none; border-radius: 4px; padding: 5px 12px; cursor: pointer; font-size: 13px; white-space: nowrap; }
+        #sinPeriodosMsg { color: #888; font-size: 12px; font-style: italic; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>📋 Maestro de KPI</h1>
+    <button class="btn btn-volver" id="volverBtn">← Volver al tablero</button>
+    <button class="btn btn-agregar" id="agregarKpiBtn">+ Agregar KPI</button>
+    <button class="btn btn-separador" id="agregarSeparadorBtn">➕ Agregar separador al final</button>
+    <div style="overflow-x: auto;">
+        <table id="tablaMaestro">
+            <thead>
+                <tr><th>Orden</th><th>Tipo</th><th>Código</th><th>Descripción</th><th>Dueño</th>
+                <th>Unidad</th><th>Cálculo</th><th>Polaridad</th><th>Definición</th>
+                <th>Objetivo</th><th>Forma cálculo</th><th>Excluye</th><th>Periodicidad</th>
+                <th>Fuente</th><th>¿Crítico?</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="cuerpoMaestro"></tbody>
+        </table>
+    </div>
+</div>
+
+<div id="modalForm" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div id="advertencia" class="advertencia" style="display:none;">⚠️ Advertencia: Está modificando un elemento existente. Esto afectará al tablero.</div>
+        <h2 id="modalTitulo">Agregar KPI</h2>
+        <form id="elementoForm">
+            <input type="hidden" id="elementoId" value="">
+            <input type="hidden" id="tipoElemento" value="kpi">
+            
+            <label>Código <span class="required">*</span>:</label><input type="text" id="codigo" required>
+            <label>Descripción <span class="required">*</span>:</label><input type="text" id="descripcion" required>
+            <label>Dueño <span class="required">*</span>:</label><input type="text" id="duenio" required>
+            <label>Unidad <span class="required">*</span>:</label>
+            <select id="unidad" required>
+                <option value="#"># (entero)</option>
+                <option value="0.00">0.00 (2 decimales)</option>
+                <option value="%">% (porcentaje)</option>
+                <option value="$">$ (moneda)</option>
+            </select>
+            <label>Cálculo <span class="required">*</span>:</label>
+            <select id="calculo" required>
+                <option value="suma">Suma</option>
+                <option value="promedio">Promedio</option>
+                <option value="maximo">Máximo</option>
+            </select>
+            <label>Polaridad <span class="required">*</span>:</label>
+            <select id="polaridad" required>
+                <option value="▼">▼ (menor es mejor)</option>
+                <option value="▲">▲ (mayor es mejor)</option>
+                <option value="=">= (igualdad)</option>
+            </select>
+            <label>Definición <span class="required">*</span>:</label><textarea id="definicion" rows="2" required></textarea>
+            <label>Objetivo <span class="required">*</span>:</label><textarea id="objetivo" rows="2" required></textarea>
+            <label>Forma de cálculo <span class="required">*</span>:</label><textarea id="forma_calculo" rows="2" required></textarea>
+            <label>Excluye <span class="required">*</span>:</label><textarea id="excluye" rows="2" required></textarea>
+            
+            <label>Periodicidad <span class="required">*</span> (mínimo una):</label>
+            <div class="periodicidad-checkbox-group" id="periodicidadGrupo">
+                <label><input type="checkbox" value="diaria"> Diaria</label>
+                <label><input type="checkbox" value="semanal"> Semanal</label>
+                <label><input type="checkbox" value="mensual"> Mensual</label>
+            </div>
+            
+            <label>Fuente de información <span class="required">*</span>:</label><input type="text" id="fuente_info" required>
+            
+            <label>¿Es crítico? <span class="required">*</span>:</label>
+            <select id="es_critico" required>
+                <option value="no">No</option>
+                <option value="si">Sí</option>
+            </select>
+            
+            <div class="periodos-section" id="periodosSection" style="display:none;">
+                <h4>📅 Períodos activos</h4>
+                <p style="font-size:12px; color:#555; margin:0 0 8px 0;">
+                    Si no hay períodos definidos, el KPI se considera siempre activo. Agregá intervalos para restringir cuándo aparece en el tablero.
+                </p>
+                <div id="listaPeriodos"></div>
+                <div class="add-periodo-row">
+                    <label style="font-weight:normal; font-size:12px; margin:0;">Desde:</label>
+                    <input type="date" id="nuevoPeriodoInicio">
+                    <label style="font-weight:normal; font-size:12px; margin:0;">Hasta:</label>
+                    <input type="date" id="nuevoPeriodoFin">
+                    <button type="button" class="btn-add-periodo" id="btnAgregarPeriodo">+ Agregar intervalo</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn" style="background:#2ecc71; color:white;">Guardar</button>
+            <button type="button" class="btn" id="cancelarBtn">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let elementos = [];
+
+    async function cargarMaestro() {
+        const resp = await fetch('/api/elementos');
+        elementos = await resp.json();
+        const tbody = document.getElementById('cuerpoMaestro');
+        tbody.innerHTML = '';
+        for (let elem of elementos) {
+            const row = tbody.insertRow();
+            if (elem.tipo === 'separador') row.classList.add('separador-row');
+            row.insertCell(0).innerText = elem.orden;
+            row.insertCell(1).innerText = elem.tipo === 'separador' ? '📌 Separador' : '📊 KPI';
+            row.insertCell(2).innerText = elem.codigo || '';
+            row.insertCell(3).innerText = elem.descripcion;
+            row.insertCell(4).innerText = elem.duenio || '';
+            row.insertCell(5).innerText = elem.unidad;
+            row.insertCell(6).innerText = elem.calculo;
+            row.insertCell(7).innerText = elem.polaridad;
+            row.insertCell(8).innerText = elem.definicion;
+            row.insertCell(9).innerText = elem.objetivo;
+            row.insertCell(10).innerText = elem.forma_calculo;
+            row.insertCell(11).innerText = elem.excluye;
+            let periodicidadMostrar = '';
+            if (elem.periodicidad) {
+                const opts = elem.periodicidad.split(',');
+                const nombres = {diaria:'Diaria', semanal:'Semanal', mensual:'Mensual'};
+                periodicidadMostrar = opts.map(o => nombres[o] || o).join(', ');
+            }
+            row.insertCell(12).innerText = periodicidadMostrar;
+            row.insertCell(13).innerText = elem.fuente_info;
+            row.insertCell(14).innerText = elem.es_critico === 'si' ? 'Sí' : 'No';
+            const acciones = row.insertCell(15);
+            const btnEditar   = document.createElement('button'); btnEditar.innerText = 'Editar';   btnEditar.className = 'btn btn-editar';    btnEditar.onclick   = () => abrirModalEditar(elem.id, elem.tipo);
+            const btnEliminar = document.createElement('button'); btnEliminar.innerText = 'Eliminar'; btnEliminar.className = 'btn btn-eliminar'; btnEliminar.onclick = () => eliminarElemento(elem.id);
+            const btnSubir    = document.createElement('button'); btnSubir.innerText = '↑';          btnSubir.className = 'btn btn-mover';      btnSubir.onclick    = () => moverElemento(elem.id, -1);
+            const btnBajar    = document.createElement('button'); btnBajar.innerText = '↓';          btnBajar.className = 'btn btn-mover';      btnBajar.onclick    = () => moverElemento(elem.id, 1);
+            const btnSep      = document.createElement('button'); btnSep.innerText = '📌 Insertar separador después'; btnSep.className = 'btn btn-separador'; btnSep.onclick = () => insertarSeparadorDespues(elem.id);
+            acciones.appendChild(btnEditar); acciones.appendChild(btnEliminar); acciones.appendChild(btnSubir); acciones.appendChild(btnBajar); acciones.appendChild(btnSep);
+        }
+    }
+
+    async function moverElemento(id, delta) {
+        const index = elementos.findIndex(e => e.id == id);
+        if (index === -1) return;
+        const targetIndex = index + delta;
+        if (targetIndex < 0 || targetIndex >= elementos.length) return;
+        const ordenActual = elementos[index].orden;
+        const ordenTarget = elementos[targetIndex].orden;
+        const ordenes = [{id: elementos[index].id, orden: ordenTarget}, {id: elementos[targetIndex].id, orden: ordenActual}];
+        await fetch('/api/reordenar', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ordenes}) });
+        await cargarMaestro();
+    }
+
+    async function insertarSeparadorDespues(id) {
+        const titulo = prompt('Título del separador:', '---');
+        if (titulo === null) return;
+        await fetch('/api/separador', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({after_id: id, titulo: titulo}) });
+        await cargarMaestro();
+    }
+
+    async function eliminarElemento(id) {
+        if (!confirm('¿Eliminar permanentemente? Se borrarán todos sus valores.')) return;
+        await fetch(`/api/elemento/${id}`, { method: 'DELETE' });
+        await cargarMaestro();
+    }
+
+    function setPeriodicidadCheckboxes(periodicidadStr) {
+        document.querySelectorAll('#periodicidadGrupo input').forEach(chk => chk.checked = false);
+        if (periodicidadStr) {
+            const valores = periodicidadStr.split(',');
+            valores.forEach(v => {
+                const chk = document.querySelector(`#periodicidadGrupo input[value="${v.trim()}"]`);
+                if (chk) chk.checked = true;
+            });
+        }
+    }
+
+    function getPeriodicidadSeleccionada() {
+        const checks = document.querySelectorAll('#periodicidadGrupo input:checked');
+        const valores = Array.from(checks).map(chk => chk.value);
+        return valores.join(',');
+    }
+
+    function validarPeriodicidad() {
+        const checks = document.querySelectorAll('#periodicidadGrupo input:checked');
+        if (checks.length === 0) {
+            alert('Debe seleccionar al menos una periodicidad (Diaria, Semanal o Mensual).');
+            return false;
+        }
+        return true;
+    }
+
+    function abrirModalEditar(id, tipo) {
+        const elem = elementos.find(e => e.id == id);
+        if (!elem) return;
+        document.getElementById('advertencia').style.display = 'block';
+        document.getElementById('modalTitulo').innerText = tipo === 'separador' ? 'Editar Separador' : 'Editar KPI';
+        document.getElementById('elementoId').value = elem.id;
+        document.getElementById('tipoElemento').value = elem.tipo;
+        document.getElementById('codigo').value = elem.codigo || '';
+        document.getElementById('descripcion').value = elem.descripcion || '';
+        document.getElementById('duenio').value = elem.duenio || '';
+        document.getElementById('unidad').value = elem.unidad || '#';
+        document.getElementById('calculo').value = elem.calculo || 'suma';
+        document.getElementById('polaridad').value = elem.polaridad || '▼';
+        document.getElementById('definicion').value = elem.definicion || '';
+        document.getElementById('objetivo').value = elem.objetivo || '';
+        document.getElementById('forma_calculo').value = elem.forma_calculo || '';
+        document.getElementById('excluye').value = elem.excluye || '';
+        setPeriodicidadCheckboxes(elem.periodicidad || '');
+        document.getElementById('fuente_info').value = elem.fuente_info || '';
+        document.getElementById('es_critico').value = elem.es_critico || 'no';
+        document.getElementById('periodosSection').style.display = 'block';
+        document.getElementById('modalForm').style.display = 'block';
+        cargarPeriodos(id);
+    }
+
+    function abrirModalAgregarKpi() {
+        document.getElementById('advertencia').style.display = 'none';
+        document.getElementById('modalTitulo').innerText = 'Agregar KPI';
+        document.getElementById('elementoId').value = '';
+        document.getElementById('tipoElemento').value = 'kpi';
+        document.getElementById('elementoForm').reset();
+        setPeriodicidadCheckboxes('');
+        document.getElementById('es_critico').value = 'no';
+        document.getElementById('periodosSection').style.display = 'none';
+        document.getElementById('modalForm').style.display = 'block';
+    }
+
+    async function guardarElemento(event) {
+        event.preventDefault();
+        if (!validarPeriodicidad()) return;
+        
+        const id   = document.getElementById('elementoId').value;
+        const tipo = document.getElementById('tipoElemento').value;
+        const periodicidadStr = getPeriodicidadSeleccionada();
+        
+        const data = {
+            tipo, 
+            codigo: document.getElementById('codigo').value,
+            descripcion: document.getElementById('descripcion').value,
+            duenio: document.getElementById('duenio').value,
+            unidad: document.getElementById('unidad').value,
+            calculo: document.getElementById('calculo').value,
+            polaridad: document.getElementById('polaridad').value,
+            definicion: document.getElementById('definicion').value,
+            objetivo: document.getElementById('objetivo').value,
+            forma_calculo: document.getElementById('forma_calculo').value,
+            excluye: document.getElementById('excluye').value,
+            periodicidad: periodicidadStr,
+            fuente_info: document.getElementById('fuente_info').value,
+            es_critico: document.getElementById('es_critico').value
+        };
+        
+        let url = '/api/elemento', method = 'POST';
+        if (id) { url = `/api/elemento/${id}`; method = 'PUT'; }
+        const resp = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        if (!resp.ok) { const err = await resp.json(); alert(err.error || 'Error al guardar'); return; }
+        cerrarModal();
+        await cargarMaestro();
+    }
+
+    function cerrarModal() { document.getElementById('modalForm').style.display = 'none'; }
+
+    document.getElementById('volverBtn').onclick = () => { window.location.href = '/'; };
+    document.getElementById('agregarKpiBtn').onclick = abrirModalAgregarKpi;
+    document.getElementById('agregarSeparadorBtn').onclick = async () => {
+        const titulo = prompt('Título del separador:', 'Nueva sección');
+        if (titulo) {
+            await fetch('/api/separador', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({after_id: null, titulo}) });
+            await cargarMaestro();
+        }
+    };
+    document.getElementById('cancelarBtn').onclick = cerrarModal;
+    document.querySelector('.close').onclick = cerrarModal;
+    document.getElementById('elementoForm').onsubmit = guardarElemento;
+    window.onclick = function(event) { if (event.target == document.getElementById('modalForm')) cerrarModal(); };
+    // ── Períodos activos ─────────────────────────────────────────────────────
+    let kpiIdActual = null;
+
+    async function cargarPeriodos(kpiId) {
+        kpiIdActual = kpiId;
+        const resp = await fetch(`/api/elemento/${kpiId}/periodos`);
+        const periodos = await resp.json();
+        renderizarPeriodos(periodos);
+    }
+
+    function renderizarPeriodos(periodos) {
+        const lista = document.getElementById('listaPeriodos');
+        lista.innerHTML = '';
+        if (periodos.length === 0) {
+            lista.innerHTML = '<p id="sinPeriodosMsg">Sin intervalos definidos (el KPI aparecerá siempre).</p>';
+            return;
+        }
+        for (const p of periodos) {
+            const div = document.createElement('div');
+            div.className = 'periodo-item';
+            div.innerHTML = `<span>📅 ${p.fecha_inicio} → ${p.fecha_fin}</span>
+                <button class="btn-del-periodo" data-id="${p.id}">✕ Eliminar</button>`;
+            div.querySelector('.btn-del-periodo').onclick = () => eliminarPeriodo(p.id);
+            lista.appendChild(div);
+        }
+    }
+
+    async function eliminarPeriodo(periodoId) {
+        if (!confirm('¿Eliminar este intervalo?')) return;
+        await fetch(`/api/periodo/${periodoId}`, { method: 'DELETE' });
+        await cargarPeriodos(kpiIdActual);
+    }
+
+    document.getElementById('btnAgregarPeriodo').addEventListener('click', async () => {
+        const inicio = document.getElementById('nuevoPeriodoInicio').value;
+        const fin = document.getElementById('nuevoPeriodoFin').value;
+        if (!inicio || !fin) { alert('Ingresá fecha de inicio y fin.'); return; }
+        if (inicio > fin) { alert('La fecha de inicio debe ser anterior o igual a la fecha de fin.'); return; }
+        await fetch(`/api/elemento/${kpiIdActual}/periodos`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ fecha_inicio: inicio, fecha_fin: fin })
+        });
+        document.getElementById('nuevoPeriodoInicio').value = '';
+        document.getElementById('nuevoPeriodoFin').value = '';
+        await cargarPeriodos(kpiIdActual);
+    });
+
+    cargarMaestro();
+</script>
+</body>
+</html>
