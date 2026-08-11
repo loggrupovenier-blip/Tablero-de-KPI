@@ -228,8 +228,20 @@ def api_eliminar_periodo(periodo_id):
     return jsonify({'ok': True})
 
 if __name__ == '__main__':
+    # Inicializar la base de datos
     init_db()
-    def abrir_navegador():
-        webbrowser.open_new('http://127.0.0.1:5000')
-    Timer(1, abrir_navegador).start()
-    app.run(debug=True, host='0.0.0.0', port=5000, use_reloader=False)
+    
+    # Obtener el puerto desde la variable de entorno (Render asigna uno)
+    port = int(os.environ.get('PORT', 5000))
+    
+    # Detectar si estamos en producción o desarrollo
+    is_production = os.environ.get('RENDER', False)
+    
+    if not is_production:
+        # Solo abrir navegador en desarrollo local
+        def abrir_navegador():
+            webbrowser.open_new('http://127.0.0.1:5000')
+        Timer(1, abrir_navegador).start()
+    
+    # Ejecutar la aplicación
+    app.run(debug=not is_production, host='0.0.0.0', port=port)
