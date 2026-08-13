@@ -204,6 +204,25 @@ def get_valores(kpi_id, year):
     return obj, real, gatillo
 
 
+def get_valores_completos(kpi_id):
+    """Obtiene todos los valores de un KPI sin filtrar por año"""
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute(adapt_query(
+        "SELECT fecha, tipo, valor FROM valores WHERE kpi_id=?"),
+        (kpi_id,))
+    obj, real, gatillo = {}, {}, {}
+    for fecha, tipo, valor in c.fetchall():
+        if tipo == 'obj':
+            obj[fecha] = valor
+        elif tipo == 'real':
+            real[fecha] = valor
+        elif tipo == 'gatillo':
+            gatillo[fecha] = valor
+    conn.close()
+    return obj, real, gatillo
+
+
 def set_valor(kpi_id, fecha, tipo, valor):
     conn = get_conn()
     c = conn.cursor()
@@ -213,6 +232,26 @@ def set_valor(kpi_id, fecha, tipo, valor):
         c.execute(adapt_query(
             "INSERT INTO valores (kpi_id, fecha, tipo, valor) VALUES (?,?,?,?)"),
             (kpi_id, fecha, tipo, float(valor)))
+    conn.commit()
+    conn.close()
+
+
+def importar_valores_masivos(kpi_id, valores_list):
+    """
+    Importa múltiples valores de forma masiva
+    valores_list: lista de tuplas (fecha, tipo, valor)
+    """
+    conn = get_conn()
+    c = conn.cursor()
+    
+    for fecha, tipo, valor in valores_list:
+        if valor is not None and valor != '':
+            c.execute(adapt_query("DELETE FROM valores WHERE kpi_id=? AND fecha=? AND tipo=?"),
+                      (kpi_id, fecha, tipo))
+            c.execute(adapt_query(
+                "INSERT INTO valores (kpi_id, fecha, tipo, valor) VALUES (?,?,?,?)"),
+                (kpi_id, fecha, tipo, float(valor)))
+    
     conn.commit()
     conn.close()
 
