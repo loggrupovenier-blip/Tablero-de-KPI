@@ -208,7 +208,7 @@
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header"><span>⚙️ Configuración</span><button id="toggleSidebarBtn">✖</button></div>
     <div class="sidebar-content">
-        <label>Año</label><select id="yearSelect"><option value="2025">2025</option><option value="2026">2026</option><option value="2027">2027</option><option value="2028">2028</option></select>
+        <label>Año</label><select id="yearSelect"></select>
         <label>Tipo de reunión</label><select id="tipoReunionSelect"><option value="diaria">Diaria (días laborables)</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
         <button id="cargarBtn">📊 Cargar tablero</button>
         <button id="maestroBtn" class="boton-maestro">📋 Maestro de KPI</button>
@@ -217,7 +217,7 @@
 </div>
 <div class="main-content" id="mainContent">
     <div class="toolbar"><button id="toggleSidebarBtn2" style="background:#2c3e50; color:white; border:none; padding:8px 12px; border-radius:4px;">☰ Menú</button><span style="flex:1"></span><span id="estado" style="font-size:12px;"></span></div>
-    <h2>Tablero de KPIs</h2>
+    <h2>📊 Tablero de KPIs</h2>
     <div id="tableroContainer"><div class="mensaje-carga">Seleccione año y tipo y presione "Cargar tablero"</div></div>
 </div>
 
@@ -252,6 +252,20 @@
     const filtrosDiv    = document.getElementById('filtrosCheckboxes');
     const modal         = document.getElementById('modalKPI');
     const closeModalBtn = document.querySelector('.close-modal');
+
+    // ── Inicializar años ──────────────────────────────────────────────────────
+    function inicializarAnios() {
+        const añoActual = new Date().getFullYear();
+        yearSelect.innerHTML = '';
+        for (let año = añoActual - 2; año <= añoActual + 2; año++) {
+            const option = document.createElement('option');
+            option.value = año;
+            option.textContent = año;
+            if (año === añoActual) option.selected = true;
+            yearSelect.appendChild(option);
+        }
+    }
+    inicializarAnios();
 
     function toggleSidebar() { sidebar.classList.toggle('collapsed'); mainContent.classList.toggle('expanded'); }
     document.getElementById('toggleSidebarBtn').addEventListener('click', toggleSidebar);
@@ -292,7 +306,6 @@
 
         const filaObj = tabla.querySelector('tbody tr.fila-obj');
         if (!filaObj) return;
-        // Ahora son 9 columnas fijas (incluye el botón)
         const celdasRef = filaObj.querySelectorAll('.sticky-col');
         if (celdasRef.length < 9) return;
 
@@ -455,7 +468,6 @@
         for (let elem of elementos) {
             if (elem.tipo === 'separador') {
                 html += `<tr class="separador-fila">`;
-                // Para separador, la primera celda (botón) se deja vacía (o con &nbsp;)
                 html += `<td class="sticky-col" data-col-index="0"> </td>`;
                 html += `<td class="sticky-col" colspan="8" data-col-index="1">${escapeHtml(elem.descripcion || '---')}</td>`;
                 html += `<td colspan="${numPeriodos}"></td>`;
@@ -522,7 +534,6 @@
         container.innerHTML = html;
         adjuntarEventos();
         vincularScrollTable();
-        // Asignar eventos a los botones "?" después de renderizar
         document.querySelectorAll('.btn-kpi-info').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -706,6 +717,7 @@
 
     window.addEventListener('resize', () => { ajustarStickyHeader(); ajustarStickyCols(); });
     cargarBtn.addEventListener('click', cargarTablero);
+    // Cargar automáticamente al iniciar
     cargarTablero();
 </script>
 </body>
