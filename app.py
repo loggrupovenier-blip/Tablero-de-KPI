@@ -69,7 +69,8 @@ def maestro():
 
 @app.route('/api/tablero')
 def api_tablero():
-    year = int(request.args.get('year', 2025))
+    # Obtener año actual si no se especifica
+    year = int(request.args.get('year', datetime.now().year))
     tipo_reunion = request.args.get('tipo', 'diaria')
     periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
     periodos_json = []
@@ -146,7 +147,9 @@ def api_tablero():
         'valoresObj': valores_obj,
         'valoresReal': valores_real,
         'valoresGatillo': valores_gatillo,
-        'mesesUnicos': meses_unicos
+        'mesesUnicos': meses_unicos,
+        'yearActual': datetime.now().year,
+        'mesActual': datetime.now().month
     })
 
 @app.route('/api/valor', methods=['POST'])
