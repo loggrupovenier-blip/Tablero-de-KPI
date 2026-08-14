@@ -57,16 +57,16 @@
     <button class="btn btn-separador" id="agregarSeparadorBtn">➕ Agregar separador al final</button>
     
     <div class="toolbar-import">
-        <button class="btn btn-exportar" id="exportarMaestroBtn">📤 Exportar Maestro</button>
-        <label class="btn btn-importar" id="importarMaestroLabel">📥 Importar Maestro
-            <input type="file" id="importarMaestroFile" accept=".csv">
+        <button class="btn btn-exportar" id="exportarMaestroBtn">📤 Exportar Maestro (XLSX)</button>
+        <label class="btn btn-importar" id="importarMaestroLabel">📥 Importar Maestro (XLSX)
+            <input type="file" id="importarMaestroFile" accept=".xlsx">
         </label>
-        <button class="btn btn-descargar-plantilla" id="plantillaMaestroBtn">📄 Descargar plantilla Maestro</button>
-        <button class="btn btn-exportar" id="exportarValoresBtn">📤 Exportar Valores</button>
-        <label class="btn btn-importar" id="importarValoresLabel">📥 Importar Valores
-            <input type="file" id="importarValoresFile" accept=".csv">
+        <button class="btn btn-descargar-plantilla" id="plantillaMaestroBtn">📄 Plantilla Maestro (XLSX)</button>
+        <button class="btn btn-exportar" id="exportarValoresBtn">📤 Exportar Valores (XLSX)</button>
+        <label class="btn btn-importar" id="importarValoresLabel">📥 Importar Valores (XLSX)
+            <input type="file" id="importarValoresFile" accept=".xlsx">
         </label>
-        <button class="btn btn-descargar-plantilla" id="plantillaValoresBtn">📄 Descargar plantilla Valores</button>
+        <button class="btn btn-descargar-plantilla" id="plantillaValoresBtn">📄 Plantilla Valores (XLSX)</button>
     </div>
     
     <div id="mensajeImport" class="mensaje-import"></div>
@@ -334,7 +334,7 @@
     async function exportarMaestro() {
         try {
             window.location.href = '/api/exportar/maestro';
-            mostrarMensaje('exito', 'Exportación de Maestro iniciada');
+            mostrarMensaje('exito', 'Exportación de Maestro iniciada (XLSX)');
         } catch(e) {
             mostrarMensaje('error', 'Error al exportar: ' + e.message);
         }
@@ -343,7 +343,7 @@
     async function exportarValores() {
         try {
             window.location.href = '/api/exportar/valores';
-            mostrarMensaje('exito', 'Exportación de Valores iniciada');
+            mostrarMensaje('exito', 'Exportación de Valores iniciada (XLSX)');
         } catch(e) {
             mostrarMensaje('error', 'Error al exportar: ' + e.message);
         }
