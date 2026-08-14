@@ -257,188 +257,208 @@ def api_eliminar_periodo(periodo_id):
 
 def estilo_excel(wb, ws, titulo=None):
     """Aplica estilos básicos a una hoja de Excel"""
-    # Fuente para encabezados
-    header_font = Font(bold=True, color="FFFFFF")
-    header_fill = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid")
-    header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-    
-    # Borde fino
-    thin_border = Border(
-        left=Side(style='thin'),
-        right=Side(style='thin'),
-        top=Side(style='thin'),
-        bottom=Side(style='thin')
-    )
-    
-    # Aplicar a la primera fila (encabezados)
-    for col in range(1, ws.max_column + 1):
-        cell = ws.cell(row=1, column=col)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = header_alignment
-        cell.border = thin_border
-    
-    # Aplicar bordes a todas las celdas
-    for row in range(1, ws.max_row + 1):
-        for col in range(1, ws.max_column + 1):
-            cell = ws.cell(row=row, column=col)
-            if not cell.border:
+    try:
+        # Fuente para encabezados
+        header_font = Font(bold=True, color="FFFFFF")
+        header_fill = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid")
+        header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        
+        # Borde fino
+        thin_border = Border(
+            left=Side(style='thin'),
+            right=Side(style='thin'),
+            top=Side(style='thin'),
+            bottom=Side(style='thin')
+        )
+        
+        # Aplicar a la primera fila (encabezados)
+        if ws.max_row > 0 and ws.max_column > 0:
+            for col in range(1, ws.max_column + 1):
+                cell = ws.cell(row=1, column=col)
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
                 cell.border = thin_border
-            if row > 1:
-                cell.alignment = Alignment(horizontal="center", vertical="center")
-    
-    # Ajustar ancho de columnas
-    for col in range(1, ws.max_column + 1):
-        max_length = 0
-        column = ws.column_dimensions[openpyxl.utils.get_column_letter(col)]
+        
+        # Aplicar bordes a todas las celdas
         for row in range(1, ws.max_row + 1):
-            cell_value = ws.cell(row=row, column=col).value
-            if cell_value:
-                max_length = max(max_length, len(str(cell_value)))
-        column.width = min(max_length + 2, 40)
-    
-    # Si hay título, agregarlo
-    if titulo:
-        ws.insert_rows(0)
-        ws.cell(row=1, column=1, value=titulo)
-        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ws.max_column)
-        title_cell = ws.cell(row=1, column=1)
-        title_cell.font = Font(bold=True, size=14)
-        title_cell.alignment = Alignment(horizontal="center", vertical="center")
-        title_cell.fill = PatternFill(start_color="ECF0F1", end_color="ECF0F1", fill_type="solid")
+            for col in range(1, ws.max_column + 1):
+                cell = ws.cell(row=row, column=col)
+                if not cell.border:
+                    cell.border = thin_border
+                if row > 1:
+                    cell.alignment = Alignment(horizontal="center", vertical="center")
+        
+        # Ajustar ancho de columnas
+        for col in range(1, ws.max_column + 1):
+            max_length = 0
+            column = ws.column_dimensions[openpyxl.utils.get_column_letter(col)]
+            for row in range(1, ws.max_row + 1):
+                cell_value = ws.cell(row=row, column=col).value
+                if cell_value:
+                    max_length = max(max_length, len(str(cell_value)))
+            column.width = min(max_length + 2, 40)
+        
+        # Si hay título, agregarlo
+        if titulo and ws.max_row > 0:
+            ws.insert_rows(0)
+            ws.cell(row=1, column=1, value=titulo)
+            ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=ws.max_column)
+            title_cell = ws.cell(row=1, column=1)
+            title_cell.font = Font(bold=True, size=14)
+            title_cell.alignment = Alignment(horizontal="center", vertical="center")
+            title_cell.fill = PatternFill(start_color="ECF0F1", end_color="ECF0F1", fill_type="solid")
+    except Exception as e:
+        # Si hay error en estilos, continuamos sin estilos
+        print(f"Error al aplicar estilos: {e}")
 
 
 @app.route('/api/exportar/maestro', methods=['GET'])
 def exportar_maestro():
     """Exporta todos los elementos del maestro a XLSX"""
-    elementos = get_elementos_ordenados()
-    
-    wb = openpyxl.Workbook()
-    ws = wb.active
-    ws.title = "Maestro KPI"
-    
-    # Cabeceras
-    headers = [
-        'id', 'tipo', 'codigo', 'descripcion', 'duenio', 'unidad', 'calculo',
-        'polaridad', 'definicion', 'objetivo', 'forma_calculo', 'excluye',
-        'periodicidad', 'fuente_info', 'es_critico', 'orden'
-    ]
-    ws.append(headers)
-    
-    # Datos
-    for elem in elementos:
-        ws.append([
-            elem['id'],
-            elem['tipo'],
-            elem['codigo'] or '',
-            elem['descripcion'] or '',
-            elem['duenio'] or '',
-            elem['unidad'] or '',
-            elem['calculo'] or '',
-            elem['polaridad'] or '',
-            elem['definicion'] or '',
-            elem['objetivo'] or '',
-            elem['forma_calculo'] or '',
-            elem['excluye'] or '',
-            elem['periodicidad'] or '',
-            elem['fuente_info'] or '',
-            elem['es_critico'] or 'no',
-            elem['orden'] or 0
-        ])
-    
-    estilo_excel(wb, ws, "MAESTRO DE KPI - Exportación")
-    
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    
-    return send_file(
-        output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name='maestro_kpi.xlsx'
-    )
+    try:
+        elementos = get_elementos_ordenados()
+        
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Maestro KPI"
+        
+        # Cabeceras
+        headers = [
+            'id', 'tipo', 'codigo', 'descripcion', 'duenio', 'unidad', 'calculo',
+            'polaridad', 'definicion', 'objetivo', 'forma_calculo', 'excluye',
+            'periodicidad', 'fuente_info', 'es_critico', 'orden'
+        ]
+        ws.append(headers)
+        
+        # Datos
+        for elem in elementos:
+            ws.append([
+                elem.get('id', ''),
+                elem.get('tipo', ''),
+                elem.get('codigo') or '',
+                elem.get('descripcion') or '',
+                elem.get('duenio') or '',
+                elem.get('unidad') or '',
+                elem.get('calculo') or '',
+                elem.get('polaridad') or '',
+                elem.get('definicion') or '',
+                elem.get('objetivo') or '',
+                elem.get('forma_calculo') or '',
+                elem.get('excluye') or '',
+                elem.get('periodicidad') or '',
+                elem.get('fuente_info') or '',
+                elem.get('es_critico') or 'no',
+                elem.get('orden') or 0
+            ])
+        
+        estilo_excel(wb, ws, "MAESTRO DE KPI - Exportación")
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='maestro_kpi.xlsx'
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/exportar/valores', methods=['GET'])
 def exportar_valores():
     """Exporta todos los valores a XLSX con formato profesional"""
-    kpis = get_elementos_ordenados()
-    kpis_kpi = [k for k in kpis if k['tipo'] == 'kpi']
-    
-    wb = openpyxl.Workbook()
-    
-    # Hoja 1: Valores planos (para importación)
-    ws_flat = wb.active
-    ws_flat.title = "Valores"
-    ws_flat.append(['kpi_id', 'codigo', 'descripcion', 'fecha', 'tipo', 'valor'])
-    
-    # Hoja 2: Resumen por KPI
-    ws_summary = wb.create_sheet("Resumen por KPI")
-    ws_summary.append(['Código', 'Descripción', 'Dueño', 'Unidad', 'Cálculo', 'Polaridad', 'Total Obj', 'Total Real', 'Total Gatillo'])
-    
-    total_importados = 0
-    
-    for kpi in kpis_kpi:
-        # Obtener valores para todos los años (2020-2030)
-        obj_data = {}
-        real_data = {}
-        gatillo_data = {}
+    try:
+        kpis = get_elementos_ordenados()
+        kpis_kpi = [k for k in kpis if k['tipo'] == 'kpi']
         
-        for year in range(2020, 2031):
-            obj, real, gatillo = get_valores(kpi['id'], year)
-            for fecha, valor in obj.items():
-                if valor is not None and valor != '':
-                    obj_data[fecha] = valor
-            for fecha, valor in real.items():
-                if valor is not None and valor != '':
-                    real_data[fecha] = valor
-            for fecha, valor in gatillo.items():
-                if valor is not None and valor != '':
-                    gatillo_data[fecha] = valor
+        wb = openpyxl.Workbook()
         
-        # Escribir valores planos
-        for fecha, valor in obj_data.items():
-            ws_flat.append([kpi['id'], kpi['codigo'] or '', kpi['descripcion'] or '', fecha, 'obj', valor])
-            total_importados += 1
-        for fecha, valor in real_data.items():
-            ws_flat.append([kpi['id'], kpi['codigo'] or '', kpi['descripcion'] or '', fecha, 'real', valor])
-            total_importados += 1
-        for fecha, valor in gatillo_data.items():
-            ws_flat.append([kpi['id'], kpi['codigo'] or '', kpi['descripcion'] or '', fecha, 'gatillo', valor])
-            total_importados += 1
+        # Hoja 1: Valores planos (para importación)
+        ws_flat = wb.active
+        ws_flat.title = "Valores"
+        ws_flat.append(['kpi_id', 'codigo', 'descripcion', 'fecha', 'tipo', 'valor'])
         
-        # Resumen por KPI
-        total_obj = sum(obj_data.values()) if obj_data else 0
-        total_real = sum(real_data.values()) if real_data else 0
-        total_gatillo = sum(gatillo_data.values()) if gatillo_data else 0
+        # Hoja 2: Resumen por KPI
+        ws_summary = wb.create_sheet("Resumen por KPI")
+        ws_summary.append(['Código', 'Descripción', 'Dueño', 'Unidad', 'Cálculo', 'Polaridad', 'Total Obj', 'Total Real', 'Total Gatillo'])
         
-        ws_summary.append([
-            kpi['codigo'] or '',
-            kpi['descripcion'] or '',
-            kpi['duenio'] or '',
-            kpi['unidad'] or '',
-            kpi['calculo'] or '',
-            kpi['polaridad'] or '',
-            total_obj,
-            total_real,
-            total_gatillo
-        ])
-    
-    # Aplicar estilos a ambas hojas
-    estilo_excel(wb, ws_flat, f"VALORES - Total: {total_importados} registros")
-    estilo_excel(wb, ws_summary, "RESUMEN POR KPI")
-    
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    
-    return send_file(
-        output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name='valores_kpi.xlsx'
-    )
+        total_importados = 0
+        
+        for kpi in kpis_kpi:
+            try:
+                # Obtener valores usando get_valores_completos (más eficiente)
+                obj_data, real_data, gatillo_data = get_valores_completos(kpi['id'])
+                
+                # Si get_valores_completos no devuelve datos, intentar con get_valores para años específicos
+                if not obj_data and not real_data and not gatillo_data:
+                    for year in range(2020, 2031):
+                        obj, real, gatillo = get_valores(kpi['id'], year)
+                        obj_data.update(obj)
+                        real_data.update(real)
+                        gatillo_data.update(gatillo)
+                
+                # Escribir valores planos
+                for fecha, valor in obj_data.items():
+                    if valor is not None and valor != '':
+                        ws_flat.append([kpi['id'], kpi.get('codigo') or '', kpi.get('descripcion') or '', fecha, 'obj', float(valor) if valor else ''])
+                        total_importados += 1
+                
+                for fecha, valor in real_data.items():
+                    if valor is not None and valor != '':
+                        ws_flat.append([kpi['id'], kpi.get('codigo') or '', kpi.get('descripcion') or '', fecha, 'real', float(valor) if valor else ''])
+                        total_importados += 1
+                
+                for fecha, valor in gatillo_data.items():
+                    if valor is not None and valor != '':
+                        ws_flat.append([kpi['id'], kpi.get('codigo') or '', kpi.get('descripcion') or '', fecha, 'gatillo', float(valor) if valor else ''])
+                        total_importados += 1
+                
+                # Resumen por KPI
+                total_obj = sum(float(v) for v in obj_data.values() if v is not None and v != '') if obj_data else 0
+                total_real = sum(float(v) for v in real_data.values() if v is not None and v != '') if real_data else 0
+                total_gatillo = sum(float(v) for v in gatillo_data.values() if v is not None and v != '') if gatillo_data else 0
+                
+                ws_summary.append([
+                    kpi.get('codigo') or '',
+                    kpi.get('descripcion') or '',
+                    kpi.get('duenio') or '',
+                    kpi.get('unidad') or '',
+                    kpi.get('calculo') or '',
+                    kpi.get('polaridad') or '',
+                    total_obj,
+                    total_real,
+                    total_gatillo
+                ])
+                
+            except Exception as e:
+                # Si falla un KPI, continuamos con el siguiente
+                print(f"Error procesando KPI {kpi.get('id')}: {e}")
+                continue
+        
+        # Aplicar estilos a ambas hojas
+        estilo_excel(wb, ws_flat, f"VALORES - Total: {total_importados} registros")
+        estilo_excel(wb, ws_summary, "RESUMEN POR KPI")
+        
+        output = io.BytesIO()
+        wb.save(output)
+        output.seek(0)
+        
+        return send_file(
+            output,
+            mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            as_attachment=True,
+            download_name='valores_kpi.xlsx'
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/importar/maestro', methods=['POST'])
