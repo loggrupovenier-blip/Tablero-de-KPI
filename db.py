@@ -213,6 +213,8 @@ def init_db():
                 ('tema', 'Producción'),
                 ('tema', 'Calidad'),
                 ('tema', 'Mantenimiento'),
+                ('tema', 'Logística'),
+                ('tema', 'Recursos Humanos'),
                 ('pilar_dpo', 'Pilar 1 - Seguridad'),
                 ('pilar_dpo', 'Pilar 2 - Confiabilidad'),
                 ('pilar_dpo', 'Pilar 3 - Costos'),
@@ -220,13 +222,16 @@ def init_db():
                 ('responsable', 'Juan Pérez'),
                 ('responsable', 'María González'),
                 ('responsable', 'Carlos Rodríguez'),
+                ('responsable', 'Ana Martínez'),
                 ('estado', 'Pendiente'),
                 ('estado', 'En progreso'),
                 ('estado', 'Completado'),
                 ('estado', 'Cancelado'),
+                ('estado', 'Bloqueado'),
                 ('prioridad', 'Alta'),
                 ('prioridad', 'Media'),
-                ('prioridad', 'Baja')
+                ('prioridad', 'Baja'),
+                ('prioridad', 'Crítica')
             ]
             for cat, val in opciones_default:
                 c.execute("INSERT INTO opciones_menu (categoria, valor) VALUES (?, ?)", (cat, val))

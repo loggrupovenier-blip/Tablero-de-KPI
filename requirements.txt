@@ -1,5 +1,5 @@
-Flask
-gunicorn
-psycopg2-binary
-openpyxl
-pandas
+Flask==2.3.3
+openpyxl==3.1.2
+pandas==2.1.4
+psycopg2-binary==2.9.9
+gunicorn==21.2.0
