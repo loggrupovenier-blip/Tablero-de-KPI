@@ -263,6 +263,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
         .dias-accidente .fecha-accidente input {
             background: rgba(255,255,255,0.15);
@@ -472,27 +473,16 @@
         
         if (!fecha) {
             valorElement.textContent = '--';
-            valorElement.style.color = '#ffd700';
             return;
         }
         
         const dias = calcularDiasAccidente(fecha);
         if (dias === null) {
             valorElement.textContent = '--';
-            valorElement.style.color = '#ffd700';
             return;
         }
         
         valorElement.textContent = dias;
-        
-        // Cambiar color según cantidad de días
-        if (dias <= 7) {
-            valorElement.style.color = '#ff6b6b';
-        } else if (dias <= 30) {
-            valorElement.style.color = '#ffd93d';
-        } else {
-            valorElement.style.color = '#6bcb77';
-        }
         
         // Guardar en localStorage
         try {
