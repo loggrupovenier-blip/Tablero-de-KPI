@@ -223,7 +223,6 @@
         .filtro-mes { display: inline-block; margin-right: 10px; margin-bottom: 10px; background: #ecf0f1; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 12px; color: black; }
         .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px; }
         .mensaje-carga { text-align: center; padding: 20px; }
-        h2 { margin: 0 0 10px 0; font-size: 1.5rem; display: inline-block; }
         .boton-maestro { background: #8e44ad !important; }
         .boton-maestro:hover { background: #732d91 !important; }
         .separador-fila td { background-color: #ffa500 !important; color: black !important; font-weight: bold; text-align: left !important; }
@@ -238,32 +237,41 @@
             margin: 15px 0 20px 0;
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            justify-content: flex-start;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 20px 30px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
-        .dias-accidente .label {
+        .dias-accidente .dias-texto {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .dias-accidente .dias-texto .icono {
+            font-size: 24px;
+        }
+        .dias-accidente .dias-texto .label {
             font-size: 16px;
             font-weight: 600;
             opacity: 0.9;
         }
-        .dias-accidente .valor {
-            font-size: 32px;
+        .dias-accidente .dias-texto .valor {
+            font-size: 28px;
             font-weight: 800;
             color: #ffd700;
             background: rgba(255,215,0,0.15);
-            padding: 5px 20px;
-            border-radius: 8px;
+            padding: 2px 16px;
+            border-radius: 6px;
             border: 2px solid rgba(255,215,0,0.3);
+            min-width: 60px;
+            text-align: center;
         }
         .dias-accidente .fecha-accidente {
-            font-size: 14px;
-            opacity: 0.8;
             display: flex;
             align-items: center;
             gap: 8px;
-            flex-wrap: wrap;
+            font-size: 14px;
+            opacity: 0.9;
         }
         .dias-accidente .fecha-accidente input {
             background: rgba(255,255,255,0.15);
@@ -292,14 +300,35 @@
             background: #ffed4a;
             transform: scale(1.02);
         }
-        .dias-accidente .dias-texto {
+
+        /* Header con título y estado */
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .header-top .titulo-section {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .header-top .titulo-section h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: inline-block;
+        }
+        .header-top .estado-section {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
         }
-        .dias-accidente .dias-texto .icono {
-            font-size: 28px;
+        .header-top .estado-section #estado {
+            font-size: 14px;
+            font-weight: 500;
+            color: #2c3e50;
         }
     </style>
 </head>
@@ -318,12 +347,18 @@
     <div class="toolbar">
         <button id="toggleSidebarBtn2" style="background:#2c3e50; color:white; border:none; padding:8px 12px; border-radius:4px;">☰ Menú</button>
         <span style="flex:1"></span>
-        <span id="estado" style="font-size:12px;"></span>
         <button class="btn-ayuda" id="btnAyudaPrincipal" title="Ayuda">?</button>
     </div>
-    <div>
-        <h2>📊 Tablero de KPIs</h2>
-        <button class="btn-ayuda" id="btnAyudaTitulo" title="Ayuda">?</button>
+
+    <!-- Header: Título + Estado + Botón Ayuda -->
+    <div class="header-top">
+        <div class="titulo-section">
+            <h2>📊 Tablero de KPIs</h2>
+            <button class="btn-ayuda" id="btnAyudaTitulo" title="Ayuda">?</button>
+        </div>
+        <div class="estado-section">
+            <span id="estado">Listo</span>
+        </div>
     </div>
 
     <!-- Sección Días del Último Accidente -->
