@@ -24,11 +24,6 @@ app = Flask(__name__)
 
 
 def calcular_valor_agregado(valores_diarios, calculo):
-    """
-    valores_diarios: lista de números (v_obj o v_real o v_gatillo)
-    calculo: 'suma', 'promedio', 'maximo'
-    Retorna el valor agregado o None.
-    """
     if not valores_diarios:
         return None
     if calculo == 'suma':
@@ -41,9 +36,6 @@ def calcular_valor_agregado(valores_diarios, calculo):
 
 
 def agregar_valores_periodo(kpi, periodo, valores_diarios_obj, valores_diarios_real, valores_diarios_gatillo):
-    """
-    Calcula obj, real, gatillo para un período (semanal/mensual) a partir de los diarios.
-    """
     dias_del_periodo = periodo['dias']
     calculo = kpi['calculo']
     
@@ -87,7 +79,6 @@ def accion_log():
 
 @app.route('/api/tablero')
 def api_tablero():
-    # Obtener año actual si no se especifica
     year = int(request.args.get('year', datetime.now().year))
     tipo_reunion = request.args.get('tipo', 'diaria')
     periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
@@ -104,14 +95,12 @@ def api_tablero():
     
     elementos = get_elementos_ordenados()
     
-    # Calcular rango de fechas visible en el tablero
     if periodos:
         rango_inicio = periodos[0]['fecha_inicio'].date().isoformat()
         rango_fin = periodos[-1]['fecha_fin'].date().isoformat()
     else:
         rango_inicio = rango_fin = f"{year}-01-01"
 
-    # Filtrar KPIs por periodicidad y por períodos activos
     elementos_filtrados = []
     for elem in elementos:
         if elem['tipo'] == 'separador':
@@ -119,7 +108,7 @@ def api_tablero():
         elif elem['tipo'] == 'kpi':
             periodicidad_str = (elem.get('periodicidad') or '').strip().lower()
             if not periodicidad_str:
-                pass  # sin periodicidad definida no aplica filtro de reunión
+                pass
             else:
                 periodicidades = [p.strip() for p in periodicidad_str.split(',') if p.strip()]
                 if tipo_reunion not in periodicidades:
@@ -322,22 +311,16 @@ def agregar_opcion_menu_route():
 # ── FUNCIONES DE EXPORTACIÓN E IMPORTACIÓN CON XLSX ─────────────────────────
 
 def estilo_excel(wb, ws, titulo=None):
-    """Aplica estilos básicos a una hoja de Excel"""
     try:
-        # Fuente para encabezados
         header_font = Font(bold=True, color="FFFFFF")
         header_fill = PatternFill(start_color="2C3E50", end_color="2C3E50", fill_type="solid")
         header_alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
-        
-        # Borde fino
         thin_border = Border(
             left=Side(style='thin'),
             right=Side(style='thin'),
             top=Side(style='thin'),
             bottom=Side(style='thin')
         )
-        
-        # Aplicar a la primera fila (encabezados)
         if ws.max_row > 0 and ws.max_column > 0:
             for col in range(1, ws.max_column + 1):
                 cell = ws.cell(row=1, column=col)
@@ -345,8 +328,6 @@ def estilo_excel(wb, ws, titulo=None):
                 cell.fill = header_fill
                 cell.alignment = header_alignment
                 cell.border = thin_border
-        
-        # Aplicar bordes a todas las celdas
         for row in range(1, ws.max_row + 1):
             for col in range(1, ws.max_column + 1):
                 cell = ws.cell(row=row, column=col)
@@ -354,8 +335,6 @@ def estilo_excel(wb, ws, titulo=None):
                     cell.border = thin_border
                 if row > 1:
                     cell.alignment = Alignment(horizontal="center", vertical="center")
-        
-        # Ajustar ancho de columnas
         for col in range(1, ws.max_column + 1):
             max_length = 0
             column = ws.column_dimensions[openpyxl.utils.get_column_letter(col)]
@@ -364,8 +343,6 @@ def estilo_excel(wb, ws, titulo=None):
                 if cell_value:
                     max_length = max(max_length, len(str(cell_value)))
             column.width = min(max_length + 2, 40)
-        
-        # Si hay título, agregarlo
         if titulo and ws.max_row > 0:
             ws.insert_rows(0)
             ws.cell(row=1, column=1, value=titulo)
@@ -375,29 +352,20 @@ def estilo_excel(wb, ws, titulo=None):
             title_cell.alignment = Alignment(horizontal="center", vertical="center")
             title_cell.fill = PatternFill(start_color="ECF0F1", end_color="ECF0F1", fill_type="solid")
     except Exception as e:
-        # Si hay error en estilos, continuamos sin estilos
         print(f"Error al aplicar estilos: {e}")
 
 
 @app.route('/api/exportar/maestro', methods=['GET'])
 def exportar_maestro():
-    """Exporta todos los elementos del maestro a XLSX"""
     try:
         elementos = get_elementos_ordenados()
-        
         wb = openpyxl.Workbook()
         ws = wb.active
         ws.title = "Maestro KPI"
-        
-        # Cabeceras
-        headers = [
-            'id', 'tipo', 'codigo', 'descripcion', 'duenio', 'unidad', 'calculo',
-            'polaridad', 'definicion', 'objetivo', 'forma_calculo', 'excluye',
-            'periodicidad', 'fuente_info', 'es_critico', 'orden'
-        ]
+        headers = ['id', 'tipo', 'codigo', 'descripcion', 'duenio', 'unidad', 'calculo',
+                   'polaridad', 'definicion', 'objetivo', 'forma_calculo', 'excluye',
+                   'periodicidad', 'fuente_info', 'es_critico', 'orden']
         ws.append(headers)
-        
-        # Datos
         for elem in elementos:
             ws.append([
                 elem.get('id', ''),
@@ -417,13 +385,10 @@ def exportar_maestro():
                 elem.get('es_critico') or 'no',
                 elem.get('orden') or 0
             ])
-        
         estilo_excel(wb, ws, "MAESTRO DE KPI - Exportación")
-        
         output = io.BytesIO()
         wb.save(output)
         output.seek(0)
-        
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -438,58 +403,40 @@ def exportar_maestro():
 
 @app.route('/api/exportar/valores', methods=['GET'])
 def exportar_valores():
-    """Exporta todos los valores a XLSX con formato profesional"""
     try:
         kpis = get_elementos_ordenados()
         kpis_kpi = [k for k in kpis if k['tipo'] == 'kpi']
-        
         wb = openpyxl.Workbook()
-        
-        # Hoja 1: Valores planos (para importación)
         ws_flat = wb.active
         ws_flat.title = "Valores"
         ws_flat.append(['kpi_id', 'codigo', 'descripcion', 'fecha', 'tipo', 'valor'])
-        
-        # Hoja 2: Resumen por KPI
         ws_summary = wb.create_sheet("Resumen por KPI")
         ws_summary.append(['Código', 'Descripción', 'Dueño', 'Unidad', 'Cálculo', 'Polaridad', 'Total Obj', 'Total Real', 'Total Gatillo'])
-        
         total_importados = 0
-        
         for kpi in kpis_kpi:
             try:
-                # Obtener valores usando get_valores_completos (más eficiente)
                 obj_data, real_data, gatillo_data = get_valores_completos(kpi['id'])
-                
-                # Si get_valores_completos no devuelve datos, intentar con get_valores para años específicos
                 if not obj_data and not real_data and not gatillo_data:
                     for year in range(2020, 2031):
                         obj, real, gatillo = get_valores(kpi['id'], year)
                         obj_data.update(obj)
                         real_data.update(real)
                         gatillo_data.update(gatillo)
-                
-                # Escribir valores planos
                 for fecha, valor in obj_data.items():
                     if valor is not None and valor != '':
                         ws_flat.append([kpi['id'], kpi.get('codigo') or '', kpi.get('descripcion') or '', fecha, 'obj', float(valor) if valor else ''])
                         total_importados += 1
-                
                 for fecha, valor in real_data.items():
                     if valor is not None and valor != '':
                         ws_flat.append([kpi['id'], kpi.get('codigo') or '', kpi.get('descripcion') or '', fecha, 'real', float(valor) if valor else ''])
                         total_importados += 1
-                
                 for fecha, valor in gatillo_data.items():
                     if valor is not None and valor != '':
                         ws_flat.append([kpi['id'], kpi.get('codigo') or '', kpi.get('descripcion') or '', fecha, 'gatillo', float(valor) if valor else ''])
                         total_importados += 1
-                
-                # Resumen por KPI
                 total_obj = sum(float(v) for v in obj_data.values() if v is not None and v != '') if obj_data else 0
                 total_real = sum(float(v) for v in real_data.values() if v is not None and v != '') if real_data else 0
                 total_gatillo = sum(float(v) for v in gatillo_data.values() if v is not None and v != '') if gatillo_data else 0
-                
                 ws_summary.append([
                     kpi.get('codigo') or '',
                     kpi.get('descripcion') or '',
@@ -501,20 +448,14 @@ def exportar_valores():
                     total_real,
                     total_gatillo
                 ])
-                
             except Exception as e:
-                # Si falla un KPI, continuamos con el siguiente
                 print(f"Error procesando KPI {kpi.get('id')}: {e}")
                 continue
-        
-        # Aplicar estilos a ambas hojas
         estilo_excel(wb, ws_flat, f"VALORES - Total: {total_importados} registros")
         estilo_excel(wb, ws_summary, "RESUMEN POR KPI")
-        
         output = io.BytesIO()
         wb.save(output)
         output.seek(0)
-        
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -529,37 +470,25 @@ def exportar_valores():
 
 @app.route('/api/importar/maestro', methods=['POST'])
 def importar_maestro():
-    """Importa elementos del maestro desde XLSX"""
     if 'file' not in request.files:
         return jsonify({'error': 'No se envió ningún archivo'}), 400
-    
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'Nombre de archivo vacío'}), 400
-    
     try:
-        # Leer archivo XLSX
         wb = openpyxl.load_workbook(io.BytesIO(file.read()))
         ws = wb.active
-        
-        # Obtener encabezados (primera fila)
         headers = [cell.value for cell in ws[1]]
-        
         elementos_importados = []
         errores = []
-        
-        # Obtener elementos existentes para evitar duplicados
         existentes = get_elementos_ordenados()
         codigos_existentes = [e['codigo'] for e in existentes if e['tipo'] == 'kpi' and e['codigo']]
-        
         for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
             if not row or all(cell is None for cell in row):
                 continue
-                
             if len(row) < 16:
                 errores.append(f"Fila {row_num}: Número de columnas incorrecto ({len(row)} esperado 16)")
                 continue
-            
             try:
                 elem_data = {
                     'tipo': str(row[1] or '').strip() or 'kpi',
@@ -577,8 +506,6 @@ def importar_maestro():
                     'fuente_info': str(row[13] or '').strip() or '',
                     'es_critico': str(row[14] or '').strip() or 'no',
                 }
-                
-                # Validar
                 if elem_data['tipo'] == 'kpi':
                     if not elem_data['codigo']:
                         errores.append(f"Fila {row_num}: El código es obligatorio para KPIs")
@@ -589,134 +516,90 @@ def importar_maestro():
                     if not elem_data['descripcion']:
                         errores.append(f"Fila {row_num}: La descripción es obligatoria")
                         continue
-                
-                # Agregar el elemento
                 new_id = agregar_elemento(elem_data)
                 elementos_importados.append(new_id)
-                
             except Exception as e:
                 errores.append(f"Fila {row_num}: {str(e)}")
-        
         return jsonify({
             'ok': True,
             'importados': len(elementos_importados),
             'errores': errores
         })
-        
     except Exception as e:
         return jsonify({'error': f'Error al procesar el archivo: {str(e)}'}), 400
 
 
 @app.route('/api/importar/valores', methods=['POST'])
 def importar_valores():
-    """Importa valores desde XLSX"""
     if 'file' not in request.files:
         return jsonify({'error': 'No se envió ningún archivo'}), 400
-    
     file = request.files['file']
     if file.filename == '':
         return jsonify({'error': 'Nombre de archivo vacío'}), 400
-    
     try:
-        # Leer archivo XLSX
         wb = openpyxl.load_workbook(io.BytesIO(file.read()))
         ws = wb.active
-        
-        # Obtener mapeo de códigos a IDs
         elementos = get_elementos_ordenados()
         codigo_to_id = {e['codigo']: e['id'] for e in elementos if e['tipo'] == 'kpi' and e['codigo']}
-        
         valores_importados = 0
         errores = []
-        
         for row_num, row in enumerate(ws.iter_rows(min_row=2, values_only=True), start=2):
             if not row or all(cell is None for cell in row):
                 continue
-                
             if len(row) < 6:
                 errores.append(f"Fila {row_num}: Número de columnas incorrecto ({len(row)} esperado 6)")
                 continue
-            
             try:
-                # Formato: kpi_id, codigo, descripcion, fecha, tipo, valor
                 codigo = str(row[1] or '').strip()
                 fecha = str(row[3] or '').strip()
                 tipo = str(row[4] or '').strip().lower()
                 valor_str = str(row[5] or '').strip()
-                
                 if not codigo or codigo not in codigo_to_id:
                     errores.append(f"Fila {row_num}: Código '{codigo}' no encontrado")
                     continue
-                
                 if not fecha:
                     errores.append(f"Fila {row_num}: Fecha vacía")
                     continue
-                
                 if tipo not in ['obj', 'real', 'gatillo']:
                     errores.append(f"Fila {row_num}: Tipo inválido '{tipo}' (debe ser obj, real o gatillo)")
                     continue
-                
                 try:
                     valor = float(valor_str) if valor_str else None
                 except ValueError:
                     errores.append(f"Fila {row_num}: Valor '{valor_str}' no es numérico")
                     continue
-                
                 if valor is not None:
                     kpi_id = codigo_to_id[codigo]
                     set_valor(kpi_id, fecha, tipo, valor)
                     valores_importados += 1
-                
             except Exception as e:
                 errores.append(f"Fila {row_num}: {str(e)}")
-        
         return jsonify({
             'ok': True,
             'importados': valores_importados,
             'errores': errores
         })
-        
     except Exception as e:
         return jsonify({'error': f'Error al procesar el archivo: {str(e)}'}), 400
 
 
 @app.route('/api/plantilla/maestro', methods=['GET'])
 def plantilla_maestro():
-    """Descarga plantilla para maestro KPI en XLSX"""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Plantilla Maestro KPI"
-    
-    # Encabezados
-    headers = [
-        'id', 'tipo', 'codigo', 'descripcion', 'duenio', 'unidad', 'calculo',
-        'polaridad', 'definicion', 'objetivo', 'forma_calculo', 'excluye',
-        'periodicidad', 'fuente_info', 'es_critico', 'orden'
-    ]
+    headers = ['id', 'tipo', 'codigo', 'descripcion', 'duenio', 'unidad', 'calculo',
+               'polaridad', 'definicion', 'objetivo', 'forma_calculo', 'excluye',
+               'periodicidad', 'fuente_info', 'es_critico', 'orden']
     ws.append(headers)
-    
-    # Ejemplo de KPI
-    ws.append([
-        '', 'kpi', '1.1', 'Lesiones con tarea modificada', 'Ref Seguridad', 
-        '#', 'suma', '▼', 'Número de lesiones que modifican tarea', 
-        'Reducir a 0', 'Suma de eventos', 'Ninguna', 'diaria', 'Registro interno', 'no', ''
-    ])
-    
-    # Ejemplo de separador
-    ws.append([
-        '', 'separador', '', 'SEGURIDAD', '', '', '', '', '', '', '', '', '', '', '', ''
-    ])
-    
-    # Ejemplo de otro KPI
-    ws.append([
-        '', 'kpi', '1.2', 'Días sin accidentes', 'Ref Seguridad',
-        '#', 'suma', '▲', 'Días consecutivos sin accidentes',
-        'Mantener tendencia', 'Conteo diario', 'Ninguna', 'diaria', 'Registro interno', 'no', ''
-    ])
-    
+    ws.append(['', 'kpi', '1.1', 'Lesiones con tarea modificada', 'Ref Seguridad', 
+               '#', 'suma', '▼', 'Número de lesiones que modifican tarea', 
+               'Reducir a 0', 'Suma de eventos', 'Ninguna', 'diaria', 'Registro interno', 'no', ''])
+    ws.append(['', 'separador', '', 'SEGURIDAD', '', '', '', '', '', '', '', '', '', '', '', ''])
+    ws.append(['', 'kpi', '1.2', 'Días sin accidentes', 'Ref Seguridad',
+               '#', 'suma', '▲', 'Días consecutivos sin accidentes',
+               'Mantener tendencia', 'Conteo diario', 'Ninguna', 'diaria', 'Registro interno', 'no', ''])
     estilo_excel(wb, ws, "PLANTILLA MAESTRO KPI - Complete los datos")
-    
-    # Agregar hoja de instrucciones
     ws_inst = wb.create_sheet("Instrucciones")
     ws_inst.append(["INSTRUCCIONES PARA COMPLETAR LA PLANTILLA MAESTRO KPI"])
     ws_inst.append([""])
@@ -731,17 +614,13 @@ def plantilla_maestro():
     ws_inst.append(["Campos obligatorios (*): codigo, descripcion, duenio, unidad, calculo,"])
     ws_inst.append(["polaridad, definicion, objetivo, forma_calculo, excluye, periodicidad,"])
     ws_inst.append(["fuente_info"])
-    
-    # Estilo para instrucciones
     for row in ws_inst.iter_rows():
         for cell in row:
             cell.alignment = Alignment(horizontal="left", vertical="center")
     ws_inst.column_dimensions['A'].width = 60
-    
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-    
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -752,15 +631,10 @@ def plantilla_maestro():
 
 @app.route('/api/plantilla/valores', methods=['GET'])
 def plantilla_valores():
-    """Descarga plantilla para valores KPI en XLSX"""
     wb = openpyxl.Workbook()
     ws = wb.active
     ws.title = "Plantilla Valores"
-    
-    # Encabezados
     ws.append(['kpi_id', 'codigo', 'descripcion', 'fecha', 'tipo', 'valor'])
-    
-    # Ejemplos de valores
     ws.append(['', '1.1', 'Lesiones con tarea modificada', '2026-01-01', 'obj', '0'])
     ws.append(['', '1.1', 'Lesiones con tarea modificada', '2026-01-01', 'real', '0'])
     ws.append(['', '1.1', 'Lesiones con tarea modificada', '2026-01-01', 'gatillo', '3'])
@@ -768,10 +642,7 @@ def plantilla_valores():
     ws.append(['', '1.1', 'Lesiones con tarea modificada', '2026-01-02', 'real', '1'])
     ws.append(['', '1.2', 'Días sin accidentes', '2026-01-01', 'obj', '0'])
     ws.append(['', '1.2', 'Días sin accidentes', '2026-01-01', 'real', '5'])
-    
     estilo_excel(wb, ws, "PLANTILLA VALORES KPI - Complete los datos")
-    
-    # Agregar hoja de instrucciones
     ws_inst = wb.create_sheet("Instrucciones")
     ws_inst.append(["INSTRUCCIONES PARA COMPLETAR LA PLANTILLA VALORES KPI"])
     ws_inst.append([""])
@@ -787,16 +658,13 @@ def plantilla_valores():
     ws_inst.append(["  - obj: Valor objetivo (meta)"])
     ws_inst.append(["  - real: Valor real (medición)"])
     ws_inst.append(["  - gatillo: Valor de gatillo (solo para KPIs críticos)"])
-    
     for row in ws_inst.iter_rows():
         for cell in row:
             cell.alignment = Alignment(horizontal="left", vertical="center")
     ws_inst.column_dimensions['A'].width = 60
-    
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-    
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -806,20 +674,11 @@ def plantilla_valores():
 
 
 if __name__ == '__main__':
-    # Inicializar la base de datos
     init_db()
-    
-    # Obtener el puerto desde la variable de entorno (Render asigna uno)
     port = int(os.environ.get('PORT', 5000))
-    
-    # Detectar si estamos en producción o desarrollo
     is_production = os.environ.get('RENDER', False)
-    
     if not is_production:
-        # Solo abrir navegador en desarrollo local
         def abrir_navegador():
             webbrowser.open_new('http://127.0.0.1:5000')
         Timer(1, abrir_navegador).start()
-    
-    # Ejecutar la aplicación
     app.run(debug=not is_production, host='0.0.0.0', port=port)

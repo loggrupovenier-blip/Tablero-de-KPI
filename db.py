@@ -41,12 +41,6 @@ def adapt_query(q):
     return q
 
 
-def fetchall_as_dicts(cursor):
-    if USE_PG:
-        return cursor.fetchall()
-    return cursor.fetchall()
-
-
 def init_db():
     conn = get_conn()
     c = conn.cursor()
