@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Accion Log</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
+        .container { max-width: 1400px; margin: auto; background: white; padding: 20px; border-radius: 8px; }
+        h1 { margin-top: 0; }
+        .btn { padding: 8px 16px; margin: 4px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; }
+        .btn-volver { background: #95a5a6; color: white; }
+        .btn-agregar { background: #2ecc71; color: white; }
+        .btn-editar { background: #3498db; color: white; }
+        .btn-eliminar { background: #e74c3c; color: white; }
+        .btn-guardar { background: #27ae60; color: white; }
+        .btn-cancelar { background: #95a5a6; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background: #2c3e50; color: white; position: sticky; top: 0; z-index: 10; }
+        .table-container { overflow-x: auto; max-height: 70vh; }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); overflow: auto; }
+        .modal-content { background: white; margin: 2% auto; padding: 20px; border-radius: 8px; width: 90%; max-width: 800px; position: relative; }
+        .close { position: absolute; right: 20px; top: 10px; font-size: 28px; cursor: pointer; color: #aaa; }
+        .close:hover { color: black; }
+        .form-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+        .form-group { flex: 1; min-width: 180px; }
+        .form-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 2px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; font-size: 13px; }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; }
+        .tag { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .tag-estado { background: #f39c12; color: white; }
+        .tag-prioridad { background: #e74c3c; color: white; }
+        .acciones-fila { display: flex; gap: 4px; flex-wrap: wrap; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .input-agregar-opcion { display: flex; gap: 6px; align-items: center; }
+        .input-agregar-opcion input { padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 12px; }
+        .btn-opcion { background: #8e44ad; color: white; padding: 3px 10px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-opcion:hover { background: #732d91; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="toolbar">
+        <h1>📋 Accion Log</h1>
+        <button class="btn btn-volver" id="volverBtn">← Volver</button>
+        <button class="btn btn-agregar" id="agregarBtn">+ Nueva Acción</button>
+    </div>
+    <div class="table-container">
+        <table id="tablaAcciones">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Acción</th>
+                    <th>Descripción</th>
+                    <th>Reunión</th>
+                    <th>Tema</th>
+                    <th>Pilar DPO</th>
+                    <th>Responsable</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Fecha Creación</th>
+                    <th>Fecha Modif.</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="cuerpoAcciones"></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Formulario -->
+<div id="modalForm" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2 id="modalTitulo">Nueva Acción</h2>
+        <input type="hidden" id="accionId">
+        <form id="accionForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" id="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Acción *</label>
+                    <input type="text" id="accion" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group" style="flex:2;">
+                    <label>Descripción</label>
+                    <textarea id="descripcion" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Reunión</label>
+                    <select id="reunion"><option value="">Seleccionar...</option></select>
+                    <div class="input-agregar-opcion">
+                        <input type="text" id="nuevaReunion" placeholder="Nueva opción">
+                        <button type="button" class="btn-opcion" onclick="agregarOpcion('reunion')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Tema</label>
+                    <select id="tema"><option value="">Seleccionar...</option></select>
+                    <div class="input-agregar-opcion">
+                        <input type="text" id="nuevoTema" placeholder="Nueva opción">
+                        <button type="button" class="btn-opcion" onclick="agregarOpcion('tema')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Pilar DPO</label>
+                    <select id="pilar_dpo"><option value="">Seleccionar...</option></select>
+                    <div class="input-agregar-opcion">
+                        <input type="text" id="nuevoPilar" placeholder="Nueva opción">
+                        <button type="button" class="btn-opcion" onclick="agregarOpcion('pilar_dpo')">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Responsable</label>
+                    <select id="responsable"><option value="">Seleccionar...</option></select>
+                    <div class="input-agregar-opcion">
+                        <input type="text" id="nuevoResponsable" placeholder="Nueva opción">
+                        <button type="button" class="btn-opcion" onclick="agregarOpcion('responsable')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Estado</label>
+                    <select id="estado"><option value="">Seleccionar...</option></select>
+                    <div class="input-agregar-opcion">
+                        <input type="text" id="nuevoEstado" placeholder="Nueva opción">
+                        <button type="button" class="btn-opcion" onclick="agregarOpcion('estado')">+</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Prioridad</label>
+                    <select id="prioridad"><option value="">Seleccionar...</option></select>
+                    <div class="input-agregar-opcion">
+                        <input type="text" id="nuevaPrioridad" placeholder="Nueva opción">
+                        <button type="button" class="btn-opcion" onclick="agregarOpcion('prioridad')">+</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-guardar">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let opcionesMenu = {};
+    let editandoId = null;
+
+    function cerrarModal() {
+        document.getElementById('modalForm').style.display = 'none';
+        editandoId = null;
+        document.getElementById('accionForm').reset();
+    }
+
+    function abrirModal(accion = null) {
+        document.getElementById('modalForm').style.display = 'block';
+        if (accion) {
+            document.getElementById('modalTitulo').textContent = 'Editar Acción';
+            document.getElementById('accionId').value = accion.id;
+            document.getElementById('fecha').value = accion.fecha || '';
+            document.getElementById('accion').value = accion.accion || '';
+            document.getElementById('descripcion').value = accion.descripcion || '';
+            document.getElementById('reunion').value = accion.reunion || '';
+            document.getElementById('tema').value = accion.tema || '';
+            document.getElementById('pilar_dpo').value = accion.pilar_dpo || '';
+            document.getElementById('responsable').value = accion.responsable || '';
+            document.getElementById('estado').value = accion.estado || '';
+            document.getElementById('prioridad').value = accion.prioridad || '';
+            editandoId = accion.id;
+        } else {
+            document.getElementById('modalTitulo').textContent = 'Nueva Acción';
+            document.getElementById('accionId').value = '';
+            document.getElementById('accionForm').reset();
+            editandoId = null;
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha').value = hoy;
+        }
+        cargarOpcionesEnSelects();
+    }
+
+    async function cargarOpcionesMenu() {
+        const resp = await fetch('/api/opciones_menu');
+        opcionesMenu = await resp.json();
+    }
+
+    function cargarOpcionesEnSelects() {
+        const selects = ['reunion', 'tema', 'pilar_dpo', 'responsable', 'estado', 'prioridad'];
+        for (const s of selects) {
+            const sel = document.getElementById(s);
+            const valorActual = sel.value;
+            sel.innerHTML = '<option value="">Seleccionar...</option>';
+            if (opcionesMenu[s]) {
+                for (const val of opcionesMenu[s]) {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = val;
+                    sel.appendChild(opt);
+                }
+            }
+            sel.value = valorActual;
+        }
+    }
+
+    async function agregarOpcion(categoria) {
+        const inputId = `nuevo${categoria.charAt(0).toUpperCase() + categoria.slice(1)}`;
+        const input = document.getElementById(inputId);
+        const valor = input.value.trim();
+        if (!valor) { alert('Ingresá un valor'); return; }
+        try {
+            await fetch('/api/opcion_menu', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({categoria, valor})
+            });
+            input.value = '';
+            await cargarOpcionesMenu();
+            cargarOpcionesEnSelects();
+        } catch(e) {
+            alert('Error al agregar opción: ' + e.message);
+        }
+    }
+
+    async function cargarAcciones() {
+        const resp = await fetch('/api/acciones');
+        const acciones = await resp.json();
+        const tbody = document.getElementById('cuerpoAcciones');
+        tbody.innerHTML = '';
+        for (const a of acciones) {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = a.fecha || '';
+            row.insertCell(1).textContent = a.accion || '';
+            row.insertCell(2).textContent = a.descripcion || '';
+            row.insertCell(3).textContent = a.reunion || '';
+            row.insertCell(4).textContent = a.tema || '';
+            row.insertCell(5).textContent = a.pilar_dpo || '';
+            row.insertCell(6).textContent = a.responsable || '';
+            row.insertCell(7).innerHTML = `<span class="tag tag-estado">${a.estado || ''}</span>`;
+            row.insertCell(8).innerHTML = `<span class="tag tag-prioridad">${a.prioridad || ''}</span>`;
+            row.insertCell(9).textContent = a.fecha_creacion ? a.fecha_creacion.replace('T', ' ').slice(0, 19) : '';
+            row.insertCell(10).textContent = a.fecha_modificacion ? a.fecha_modificacion.replace('T', ' ').slice(0, 19) : '';
+            const cellAcc = row.insertCell(11);
+            const btnEditar = document.createElement('button');
+            btnEditar.textContent = '✏️';
+            btnEditar.className = 'btn btn-editar';
+            btnEditar.onclick = () => abrirModal(a);
+            const btnEliminar = document.createElement('button');
+            btnEliminar.textContent = '🗑️';
+            btnEliminar.className = 'btn btn-eliminar';
+            btnEliminar.onclick = () => eliminarAccion(a.id);
+            cellAcc.appendChild(btnEditar);
+            cellAcc.appendChild(btnEliminar);
+        }
+    }
+
+    async function eliminarAccion(id) {
+        if (!confirm('¿Eliminar esta acción?')) return;
+        await fetch(`/api/accion/${id}`, { method: 'DELETE' });
+        await cargarAcciones();
+    }
+
+    document.getElementById('accionForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            fecha: document.getElementById('fecha').value,
+            accion: document.getElementById('accion').value,
+            descripcion: document.getElementById('descripcion').value,
+            reunion: document.getElementById('reunion').value,
+            tema: document.getElementById('tema').value,
+            pilar_dpo: document.getElementById('pilar_dpo').value,
+            responsable: document.getElementById('responsable').value,
+            estado: document.getElementById('estado').value,
+            prioridad: document.getElementById('prioridad').value
+        };
+        const id = document.getElementById('accionId').value;
+        let url = '/api/accion', method = 'POST';
+        if (id) { url = `/api/accion/${id}`; method = 'PUT'; }
+        await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+        cerrarModal();
+        await cargarAcciones();
+    });
+
+    document.getElementById('volverBtn').onclick = () => { window.location.href = '/'; };
+    document.getElementById('agregarBtn').onclick = () => abrirModal(null);
+    document.querySelector('.close').onclick = cerrarModal;
+    window.onclick = (e) => { if (e.target === document.getElementById('modalForm')) cerrarModal(); };
+
+    async function init() {
+        await cargarOpcionesMenu();
+        await cargarAcciones();
+    }
+    init();
+</script>
+</body>
+</html>
