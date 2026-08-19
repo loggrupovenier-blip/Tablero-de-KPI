@@ -662,23 +662,3 @@ def plantilla_valores():
         for cell in row:
             cell.alignment = Alignment(horizontal="left", vertical="center")
     ws_inst.column_dimensions['A'].width = 60
-    output = io.BytesIO()
-    wb.save(output)
-    output.seek(0)
-    return send_file(
-        output,
-        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        as_attachment=True,
-        download_name='plantilla_valores_kpi.xlsx'
-    )
-
-
-if __name__ == '__main__':
-    init_db()
-    port = int(os.environ.get('PORT', 5000))
-    is_production = os.environ.get('RENDER', False)
-    if not is_production:
-        def abrir_navegador():
-            webbrowser.open_new('http://127.0.0.1:5000')
-        Timer(1, abrir_navegador).start()
-    app.run(debug=not is_production, host='0.0.0.0', port=port)

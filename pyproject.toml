@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "kpi-tablero"
+version = "1.0.0"
+description = "Tablero de KPIs"
+authors = []
+
+[tool.poetry.dependencies]
+python = ">=3.11,<3.13"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
