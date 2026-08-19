@@ -299,7 +299,15 @@
         let url = '/api/accion', method = 'POST';
         if (id) { url = `/api/accion/${id}`; method = 'PUT'; }
         try {
-            await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            const resp = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            if (!resp.ok) {
+                let msg = `Error ${resp.status}`;
+                try {
+                    const err = await resp.json();
+                    if (err.error) msg = err.error;
+                } catch(_) {}
+                throw new Error(msg);
+            }
             cerrarModal();
             await cargarAcciones();
         } catch(e) {
