@@ -21,6 +21,7 @@
         .btn-exportar { background-color: #27ae60; color: white; }
         .btn-importar { background-color: #8e44ad; color: white; }
         .btn-descargar-plantilla { background-color: #2980b9; color: white; }
+        .btn-accion-log { background-color: #e67e22; color: white; }
         .toolbar-import { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 10px 0; }
         .toolbar-import input[type="file"] { display: none; }
         .toolbar-import label { cursor: pointer; }
@@ -47,14 +48,18 @@
         .mensaje-import.exito { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: block; }
         .mensaje-import.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; display: block; }
         .mensaje-import.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; display: block; }
+        .toolbar-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>📋 Maestro de KPI</h1>
-    <button class="btn btn-volver" id="volverBtn">← Volver al tablero</button>
-    <button class="btn btn-agregar" id="agregarKpiBtn">+ Agregar KPI</button>
-    <button class="btn btn-separador" id="agregarSeparadorBtn">➕ Agregar separador al final</button>
+    <div class="toolbar-top">
+        <button class="btn btn-volver" id="volverBtn">← Volver al tablero</button>
+        <button class="btn btn-agregar" id="agregarKpiBtn">+ Agregar KPI</button>
+        <button class="btn btn-separador" id="agregarSeparadorBtn">➕ Agregar separador al final</button>
+        <button class="btn btn-accion-log" id="accionLogBtnMaestro">📋 Accion Log</button>
+    </div>
     
     <div class="toolbar-import">
         <button class="btn btn-exportar" id="exportarMaestroBtn">📤 Exportar Maestro (XLSX)</button>
@@ -400,6 +405,8 @@
         }
     }
 
+    // ── Eventos ──────────────────────────────────────────────────────────────
+
     document.getElementById('volverBtn').onclick = () => { window.location.href = '/'; };
     document.getElementById('agregarKpiBtn').onclick = abrirModalAgregarKpi;
     document.getElementById('agregarSeparadorBtn').onclick = async () => {
@@ -413,6 +420,11 @@
     document.querySelector('.close').onclick = cerrarModal;
     document.getElementById('elementoForm').onsubmit = guardarElemento;
     window.onclick = function(event) { if (event.target == document.getElementById('modalForm')) cerrarModal(); };
+
+    // ── Botón Accion Log ─────────────────────────────────────────────────────
+    document.getElementById('accionLogBtnMaestro').addEventListener('click', () => {
+        window.location.href = '/accion_log';
+    });
 
     // ── Eventos de importación/exportación ──────────────────────────────────
     document.getElementById('exportarMaestroBtn').onclick = exportarMaestro;

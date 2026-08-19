@@ -224,6 +224,8 @@
         .mensaje-carga { text-align: center; padding: 20px; }
         .boton-maestro { background: #8e44ad !important; }
         .boton-maestro:hover { background: #732d91 !important; }
+        .boton-accion-log { background: #e67e22 !important; }
+        .boton-accion-log:hover { background: #d35400 !important; }
         .separador-fila td { background-color: #ffa500 !important; color: black !important; font-weight: bold; text-align: left !important; }
         .separador-fila td.sticky-col { background-color: #ffa500 !important; }
 
@@ -402,6 +404,7 @@
         <label>Tipo de reunión</label><select id="tipoReunionSelect"><option value="diaria">Diaria (días laborables)</option><option value="semanal">Semanal</option><option value="mensual">Mensual</option></select>
         <button id="cargarBtn">📊 Cargar tablero</button>
         <button id="maestroBtn" class="boton-maestro">📋 Maestro de KPI</button>
+        <button id="accionLogBtn" class="boton-accion-log">📋 Accion Log</button>
         <hr><div id="filtrosMesesContainer"><label>Filtrar por mes</label><div id="filtrosCheckboxes"></div></div>
     </div>
 </div>
@@ -486,6 +489,31 @@
     </div>
 </div>
 
+<!-- Modal de Comentario (clic derecho) -->
+<div id="modalComentario" class="modal" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); backdrop-filter:blur(2px);">
+    <div class="modal-contenido" style="background:#fefefe; margin:5% auto; padding:20px; border-radius:12px; width:90%; max-width:500px; box-shadow:0 4px 20px rgba(0,0,0,0.3); font-family:'Segoe UI',sans-serif; position:relative;">
+        <div class="modal-header" style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #3498db; padding-bottom:8px; margin-bottom:15px;">
+            <h3 style="margin:0; color:#2c3e50;">💬 Comentario</h3>
+            <span class="close-modal" id="closeComentarioBtn" style="font-size:28px; font-weight:bold; cursor:pointer; color:#aaa;">&times;</span>
+        </div>
+        <div style="padding:10px 0;">
+            <p style="font-size:13px; color:#555; margin-bottom:8px;">
+                <strong>KPI:</strong> <span id="comentarioKpiInfo">---</span><br>
+                <strong>Fecha:</strong> <span id="comentarioFechaInfo">---</span><br>
+                <strong>Tipo:</strong> <span id="comentarioTipoInfo">---</span>
+            </p>
+            <label style="font-weight:bold;">Comentario:</label>
+            <textarea id="comentarioTexto" rows="3" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px; font-family:inherit;"></textarea>
+            <label style="font-weight:bold; margin-top:10px; display:block;">Plan de acción asociado:</label>
+            <textarea id="comentarioPlan" rows="2" style="width:100%; padding:6px; border:1px solid #ccc; border-radius:4px; font-family:inherit;"></textarea>
+            <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:15px;">
+                <button class="btn btn-cancelar" onclick="cerrarModalComentario()" style="padding:8px 16px; margin:4px; cursor:pointer; border:none; border-radius:4px; font-weight:bold; background:#95a5a6; color:white;">Cancelar</button>
+                <button class="btn btn-guardar" id="guardarComentarioBtn" style="padding:8px 16px; margin:4px; cursor:pointer; border:none; border-radius:4px; font-weight:bold; background:#27ae60; color:white;">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentData = null;
     let filtroMesesActivos = new Set();
@@ -494,6 +522,7 @@
     const tipoSelect    = document.getElementById('tipoReunionSelect');
     const cargarBtn     = document.getElementById('cargarBtn');
     const maestroBtn    = document.getElementById('maestroBtn');
+    const accionLogBtn  = document.getElementById('accionLogBtn');
     const sidebar       = document.getElementById('sidebar');
     const mainContent   = document.getElementById('mainContent');
     const filtrosDiv    = document.getElementById('filtrosCheckboxes');
@@ -521,6 +550,7 @@
     document.getElementById('toggleSidebarBtn').addEventListener('click', toggleSidebar);
     document.getElementById('toggleSidebarBtn2').addEventListener('click', toggleSidebar);
     maestroBtn.addEventListener('click', () => { window.location.href = '/maestro'; });
+    accionLogBtn.addEventListener('click', () => { window.location.href = '/accion_log'; });
 
     // ── Funciones de Ayuda ───────────────────────────────────────────────────
     function mostrarAyuda() {
@@ -584,7 +614,6 @@
         
         valorElement.textContent = dias;
         
-        // Guardar en localStorage
         try {
             localStorage.setItem('fechaUltimoAccidente', fecha);
         } catch(e) {}
@@ -1037,6 +1066,74 @@
 
     window.addEventListener('resize', () => { ajustarStickyHeader(); ajustarStickyCols(); });
     cargarBtn.addEventListener('click', cargarTablero);
+
+    // ── COMENTARIO CON CLIC DERECHO ──────────────────────────────────────────────
+
+    let comentarioData = { kpi_id: null, fecha: null, tipo: null };
+
+    document.addEventListener('contextmenu', function(e) {
+        const celda = e.target.closest('.editable');
+        if (!celda) return;
+        e.preventDefault();
+
+        const filaObj = celda.closest('tr');
+        if (!filaObj || !filaObj.classList.contains('fila-obj')) return;
+
+        const kpiId = filaObj.getAttribute('data-kpi-id');
+        const tipo = celda.getAttribute('data-tipo');
+        const fecha = celda.getAttribute('data-periodo');
+        const kpiCodigo = filaObj.querySelector('td[data-col-index="2"]')?.textContent || '';
+
+        comentarioData = { kpi_id: kpiId, fecha, tipo };
+
+        document.getElementById('comentarioKpiInfo').textContent = kpiCodigo;
+        document.getElementById('comentarioFechaInfo').textContent = fecha;
+        document.getElementById('comentarioTipoInfo').textContent = tipo === 'obj' ? 'Objetivo' : tipo === 'real' ? 'Real' : 'Gatillo';
+
+        fetch(`/api/comentario/${kpiId}/${fecha}/${tipo}`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('comentarioTexto').value = data.comentario || '';
+                document.getElementById('comentarioPlan').value = data.plan_accion || '';
+            })
+            .catch(() => {
+                document.getElementById('comentarioTexto').value = '';
+                document.getElementById('comentarioPlan').value = '';
+            });
+
+        document.getElementById('modalComentario').style.display = 'block';
+    });
+
+    document.getElementById('guardarComentarioBtn').addEventListener('click', async () => {
+        const texto = document.getElementById('comentarioTexto').value;
+        const plan = document.getElementById('comentarioPlan').value;
+        try {
+            await fetch('/api/comentario', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    kpi_id: comentarioData.kpi_id,
+                    fecha: comentarioData.fecha,
+                    tipo: comentarioData.tipo,
+                    comentario: texto,
+                    plan_accion: plan
+                })
+            });
+            cerrarModalComentario();
+        } catch(e) {
+            alert('Error al guardar comentario');
+        }
+    });
+
+    function cerrarModalComentario() {
+        document.getElementById('modalComentario').style.display = 'none';
+    }
+
+    document.getElementById('closeComentarioBtn').onclick = cerrarModalComentario;
+    window.addEventListener('click', (e) => {
+        if (e.target === document.getElementById('modalComentario')) cerrarModalComentario();
+    });
+
     // Cargar automáticamente al iniciar
     cargarTablero();
 </script>
