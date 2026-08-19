@@ -207,6 +207,36 @@ def init_db():
             UNIQUE(categoria, valor)
         )''')
 
+        # Insertar opciones de menú por defecto
+        c.execute("SELECT COUNT(*) FROM opciones_menu")
+        if c.fetchone()[0] == 0:
+            opciones_default = [
+                ('reunion', 'Diaria'),
+                ('reunion', 'Semanal'),
+                ('reunion', 'Mensual'),
+                ('reunion', 'Extraordinaria'),
+                ('tema', 'Seguridad'),
+                ('tema', 'Producción'),
+                ('tema', 'Calidad'),
+                ('tema', 'Mantenimiento'),
+                ('pilar_dpo', 'Pilar 1 - Seguridad'),
+                ('pilar_dpo', 'Pilar 2 - Confiabilidad'),
+                ('pilar_dpo', 'Pilar 3 - Costos'),
+                ('pilar_dpo', 'Pilar 4 - Personas'),
+                ('responsable', 'Juan Pérez'),
+                ('responsable', 'María González'),
+                ('responsable', 'Carlos Rodríguez'),
+                ('estado', 'Pendiente'),
+                ('estado', 'En progreso'),
+                ('estado', 'Completado'),
+                ('estado', 'Cancelado'),
+                ('prioridad', 'Alta'),
+                ('prioridad', 'Media'),
+                ('prioridad', 'Baja')
+            ]
+            for cat, val in opciones_default:
+                c.execute("INSERT INTO opciones_menu (categoria, valor) VALUES (?, ?)", (cat, val))
+
         c.execute("SELECT COUNT(*) FROM maestro_kpi WHERE tipo='kpi'")
         if c.fetchone()[0] == 0:
             c.execute('''INSERT INTO maestro_kpi

@@ -14,7 +14,9 @@ from db import (
     agregar_elemento, actualizar_elemento, eliminar_elemento,
     insertar_separador_despues_de, reordenar_elementos, obtener_elemento_por_id,
     get_periodos_activos, agregar_periodo_activo, eliminar_periodo_activo,
-    kpi_activo_en_rango, get_valores_completos, importar_valores_masivos
+    kpi_activo_en_rango, get_valores_completos, importar_valores_masivos,
+    guardar_comentario, obtener_comentario, get_acciones, crear_accion,
+    actualizar_accion, eliminar_accion, get_opciones_menu, agregar_opcion_menu
 )
 from dates import obtener_estructura_periodos
 
@@ -261,10 +263,9 @@ def api_eliminar_periodo(periodo_id):
 # ── COMENTARIOS ──────────────────────────────────────────────────────────────
 
 @app.route('/api/comentario', methods=['POST'])
-def guardar_comentario():
-    from db import guardar_comentario as db_guardar_comentario
+def guardar_comentario_route():
     data = request.json
-    db_guardar_comentario(
+    guardar_comentario(
         kpi_id=data['kpi_id'],
         fecha=data['fecha'],
         tipo=data['tipo'],
@@ -275,51 +276,44 @@ def guardar_comentario():
 
 
 @app.route('/api/comentario/<int:kpi_id>/<fecha>/<tipo>', methods=['GET'])
-def obtener_comentario(kpi_id, fecha, tipo):
-    from db import obtener_comentario as db_obtener_comentario
-    return jsonify(db_obtener_comentario(kpi_id, fecha, tipo))
+def obtener_comentario_route(kpi_id, fecha, tipo):
+    return jsonify(obtener_comentario(kpi_id, fecha, tipo))
 
 
 # ── ACCION LOG ───────────────────────────────────────────────────────────────
 
 @app.route('/api/acciones', methods=['GET'])
 def listar_acciones():
-    from db import get_acciones
     return jsonify(get_acciones())
 
 
 @app.route('/api/accion', methods=['POST'])
-def crear_accion():
-    from db import crear_accion as db_crear_accion
+def crear_accion_route():
     data = request.json
-    accion_id = db_crear_accion(data)
+    accion_id = crear_accion(data)
     return jsonify({'id': accion_id})
 
 
 @app.route('/api/accion/<int:accion_id>', methods=['PUT'])
-def actualizar_accion(accion_id):
-    from db import actualizar_accion as db_actualizar_accion
+def actualizar_accion_route(accion_id):
     data = request.json
-    db_actualizar_accion(accion_id, data)
+    actualizar_accion(accion_id, data)
     return jsonify({'ok': True})
 
 
 @app.route('/api/accion/<int:accion_id>', methods=['DELETE'])
-def eliminar_accion(accion_id):
-    from db import eliminar_accion as db_eliminar_accion
-    db_eliminar_accion(accion_id)
+def eliminar_accion_route(accion_id):
+    eliminar_accion(accion_id)
     return jsonify({'ok': True})
 
 
 @app.route('/api/opciones_menu', methods=['GET'])
-def get_opciones_menu():
-    from db import get_opciones_menu
+def get_opciones_menu_route():
     return jsonify(get_opciones_menu())
 
 
 @app.route('/api/opcion_menu', methods=['POST'])
-def agregar_opcion_menu():
-    from db import agregar_opcion_menu
+def agregar_opcion_menu_route():
     data = request.json
     agregar_opcion_menu(data['categoria'], data['valor'])
     return jsonify({'ok': True})
