@@ -110,6 +110,32 @@
             transform: scale(1.05);
         }
 
+        /* Botón de ayuda azul (tutorial) */
+        .btn-ayuda {
+            background: #3498db;
+            border: none;
+            color: white;
+            font-weight: bold;
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+            text-align: center;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        .btn-ayuda:hover {
+            background: #2c3e50;
+            transform: scale(1.05);
+        }
+
         /* Modal */
         .modal {
             display: none;
@@ -197,11 +223,83 @@
         .filtro-mes { display: inline-block; margin-right: 10px; margin-bottom: 10px; background: #ecf0f1; padding: 5px 10px; border-radius: 20px; cursor: pointer; font-size: 12px; color: black; }
         .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 15px; }
         .mensaje-carga { text-align: center; padding: 20px; }
-        h2 { margin: 0 0 10px 0; font-size: 1.5rem; }
+        h2 { margin: 0 0 10px 0; font-size: 1.5rem; display: inline-block; }
         .boton-maestro { background: #8e44ad !important; }
         .boton-maestro:hover { background: #732d91 !important; }
         .separador-fila td { background-color: #ffa500 !important; color: black !important; font-weight: bold; text-align: left !important; }
         .separador-fila td.sticky-col { background-color: #ffa500 !important; }
+
+        /* Sección Días del Último Accidente */
+        .dias-accidente {
+            background: linear-gradient(135deg, #1a2a3a, #2c3e50);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            margin: 15px 0 20px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .dias-accidente .label {
+            font-size: 16px;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+        .dias-accidente .valor {
+            font-size: 32px;
+            font-weight: 800;
+            color: #ffd700;
+            background: rgba(255,215,0,0.15);
+            padding: 5px 20px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,215,0,0.3);
+        }
+        .dias-accidente .fecha-accidente {
+            font-size: 14px;
+            opacity: 0.8;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dias-accidente .fecha-accidente input {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .dias-accidente .fecha-accidente input::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+            cursor: pointer;
+        }
+        .dias-accidente .btn-actualizar {
+            background: #ffd700;
+            color: #1a2a3a;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .dias-accidente .btn-actualizar:hover {
+            background: #ffed4a;
+            transform: scale(1.02);
+        }
+        .dias-accidente .dias-texto {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .dias-accidente .dias-texto .icono {
+            font-size: 28px;
+        }
     </style>
 </head>
 <body>
@@ -216,8 +314,31 @@
     </div>
 </div>
 <div class="main-content" id="mainContent">
-    <div class="toolbar"><button id="toggleSidebarBtn2" style="background:#2c3e50; color:white; border:none; padding:8px 12px; border-radius:4px;">☰ Menú</button><span style="flex:1"></span><span id="estado" style="font-size:12px;"></span></div>
-    <h2>📊 Tablero de KPIs</h2>
+    <div class="toolbar">
+        <button id="toggleSidebarBtn2" style="background:#2c3e50; color:white; border:none; padding:8px 12px; border-radius:4px;">☰ Menú</button>
+        <span style="flex:1"></span>
+        <span id="estado" style="font-size:12px;"></span>
+        <button class="btn-ayuda" id="btnAyudaPrincipal" title="Ayuda">?</button>
+    </div>
+    <div>
+        <h2>📊 Tablero de KPIs</h2>
+        <button class="btn-ayuda" id="btnAyudaTitulo" title="Ayuda">?</button>
+    </div>
+
+    <!-- Sección Días del Último Accidente -->
+    <div class="dias-accidente" id="diasAccidenteSection">
+        <div class="dias-texto">
+            <span class="icono">🛡️</span>
+            <span class="label">Días del Último Accidente:</span>
+            <span class="valor" id="diasAccidenteValor">--</span>
+        </div>
+        <div class="fecha-accidente">
+            <span>📅 Fecha del último accidente:</span>
+            <input type="date" id="fechaAccidenteInput">
+            <button class="btn-actualizar" id="btnActualizarAccidente">Actualizar</button>
+        </div>
+    </div>
+
     <div id="tableroContainer"><div class="mensaje-carga">Seleccione año y tipo y presione "Cargar tablero"</div></div>
 </div>
 
@@ -239,6 +360,31 @@
     </div>
 </div>
 
+<!-- Modal de Ayuda (Tutorial) -->
+<div id="modalAyuda" class="modal">
+    <div class="modal-contenido" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3>🎓 Ayuda - ¿Cómo usar el tablero?</h3>
+            <span class="close-modal" id="closeAyudaBtn">&times;</span>
+        </div>
+        <div style="padding: 10px 0; font-size: 16px; line-height: 1.6; color: #333;">
+            <p style="margin-top: 0;">📌 <strong>Para visualizar el tablero:</strong></p>
+            <ol style="padding-left: 20px; margin-bottom: 10px;">
+                <li>Seleccionar el <strong>Año</strong> que querés visualizar.</li>
+                <li>Seleccionar el <strong>Tipo de reunión</strong> (Diaria, Semanal o Mensual).</li>
+                <li>Presionar el botón <strong>"📊 Cargar tablero"</strong>.</li>
+            </ol>
+            <p style="margin-bottom: 0; font-size: 14px; color: #666; background: #f0f4f8; padding: 10px; border-radius: 6px;">
+                💡 <strong>Tip:</strong> Podés editar los valores haciendo clic en las celdas amarillas. 
+                Los valores se guardan automáticamente al salir de la celda.
+            </p>
+        </div>
+        <div style="text-align: right; margin-top: 15px;">
+            <button id="btnEntendido" style="background: #3498db; color: white; border: none; padding: 8px 25px; border-radius: 4px; font-weight: bold; cursor: pointer;">¡Entendido!</button>
+        </div>
+    </div>
+</div>
+
 <script>
     let currentData = null;
     let filtroMesesActivos = new Set();
@@ -252,6 +398,9 @@
     const filtrosDiv    = document.getElementById('filtrosCheckboxes');
     const modal         = document.getElementById('modalKPI');
     const closeModalBtn = document.querySelector('.close-modal');
+    const modalAyuda    = document.getElementById('modalAyuda');
+    const closeAyudaBtn = document.getElementById('closeAyudaBtn');
+    const btnEntendido  = document.getElementById('btnEntendido');
 
     // ── Inicializar años ──────────────────────────────────────────────────────
     function inicializarAnios() {
@@ -272,6 +421,25 @@
     document.getElementById('toggleSidebarBtn2').addEventListener('click', toggleSidebar);
     maestroBtn.addEventListener('click', () => { window.location.href = '/maestro'; });
 
+    // ── Funciones de Ayuda ───────────────────────────────────────────────────
+    function mostrarAyuda() {
+        modalAyuda.style.display = 'block';
+    }
+
+    function cerrarAyuda() {
+        modalAyuda.style.display = 'none';
+    }
+
+    document.getElementById('btnAyudaPrincipal').addEventListener('click', mostrarAyuda);
+    document.getElementById('btnAyudaTitulo').addEventListener('click', mostrarAyuda);
+    closeAyudaBtn.addEventListener('click', cerrarAyuda);
+    btnEntendido.addEventListener('click', cerrarAyuda);
+    window.addEventListener('click', (e) => {
+        if (e.target === modalAyuda) cerrarAyuda();
+        if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // ── Función para mostrar modal de KPI ───────────────────────────────────
     function mostrarModal(kpi) {
         document.getElementById('modalTitulo').innerText = `${kpi.codigo} - ${kpi.descripcion}`;
         document.getElementById('modalDefinicion').innerText = kpi.definicion || 'No definida';
@@ -284,7 +452,69 @@
     }
 
     closeModalBtn.onclick = () => { modal.style.display = 'none'; };
-    window.onclick = (e) => { if (e.target === modal) modal.style.display = 'none'; };
+
+    // ── Días del Último Accidente ───────────────────────────────────────────
+    function calcularDiasAccidente(fechaAccidente) {
+        if (!fechaAccidente) return null;
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const fecha = new Date(fechaAccidente + 'T00:00:00');
+        if (isNaN(fecha.getTime())) return null;
+        const diffTime = hoy.getTime() - fecha.getTime();
+        if (diffTime < 0) return 0;
+        return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    }
+
+    function actualizarDiasAccidente() {
+        const input = document.getElementById('fechaAccidenteInput');
+        const valorElement = document.getElementById('diasAccidenteValor');
+        const fecha = input.value;
+        
+        if (!fecha) {
+            valorElement.textContent = '--';
+            valorElement.style.color = '#ffd700';
+            return;
+        }
+        
+        const dias = calcularDiasAccidente(fecha);
+        if (dias === null) {
+            valorElement.textContent = '--';
+            valorElement.style.color = '#ffd700';
+            return;
+        }
+        
+        valorElement.textContent = dias;
+        
+        // Cambiar color según cantidad de días
+        if (dias <= 7) {
+            valorElement.style.color = '#ff6b6b';
+        } else if (dias <= 30) {
+            valorElement.style.color = '#ffd93d';
+        } else {
+            valorElement.style.color = '#6bcb77';
+        }
+        
+        // Guardar en localStorage
+        try {
+            localStorage.setItem('fechaUltimoAccidente', fecha);
+        } catch(e) {}
+    }
+
+    function cargarFechaGuardada() {
+        try {
+            const fechaGuardada = localStorage.getItem('fechaUltimoAccidente');
+            if (fechaGuardada) {
+                document.getElementById('fechaAccidenteInput').value = fechaGuardada;
+                actualizarDiasAccidente();
+            }
+        } catch(e) {}
+    }
+
+    document.getElementById('fechaAccidenteInput').addEventListener('change', actualizarDiasAccidente);
+    document.getElementById('btnActualizarAccidente').addEventListener('click', actualizarDiasAccidente);
+    cargarFechaGuardada();
+
+    // ── Funciones del tablero ────────────────────────────────────────────────
 
     function ajustarStickyHeader() {
         const tabla = document.getElementById('tablaKPI');
