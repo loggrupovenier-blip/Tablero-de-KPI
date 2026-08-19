@@ -550,7 +550,7 @@
     document.getElementById('toggleSidebarBtn').addEventListener('click', toggleSidebar);
     document.getElementById('toggleSidebarBtn2').addEventListener('click', toggleSidebar);
     maestroBtn.addEventListener('click', () => { window.location.href = '/maestro'; });
-    accionLogBtn.addEventListener('click', () => { window.location.href = '/accion_log'; });
+    accionLogBtn.addEventListener('click', () => { window.open('/accion_log', '_blank'); });
 
     // ── Funciones de Ayuda ───────────────────────────────────────────────────
     function mostrarAyuda() {

@@ -421,9 +421,9 @@
     document.getElementById('elementoForm').onsubmit = guardarElemento;
     window.onclick = function(event) { if (event.target == document.getElementById('modalForm')) cerrarModal(); };
 
-    // ── Botón Accion Log ─────────────────────────────────────────────────────
+    // ── Botón Accion Log (abre en nueva pestaña) ───────────────────────────
     document.getElementById('accionLogBtnMaestro').addEventListener('click', () => {
-        window.location.href = '/accion_log';
+        window.open('/accion_log', '_blank');
     });
 
     // ── Eventos de importación/exportación ──────────────────────────────────
