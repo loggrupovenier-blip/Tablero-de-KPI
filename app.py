@@ -78,95 +78,95 @@ def maestro():
     return render_template('maestro.html')
 
 
+@app.route('/accion_log')
+def accion_log():
+    return render_template('accion_log.html')
+
+
 @app.route('/api/tablero')
 def api_tablero():
-    try:
-        # Obtener año actual si no se especifica
-        year = int(request.args.get('year', datetime.now().year))
-        tipo_reunion = request.args.get('tipo', 'diaria')
-        periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
-        periodos_json = []
-        for p in periodos:
-            periodos_json.append({
-                'nombre': p['nombre'],
-                'nombre_sub': p.get('nombre_sub', ''),
-                'fecha_inicio': p['fecha_inicio'].isoformat(),
-                'fecha_fin': p['fecha_fin'].isoformat(),
-                'dias': [d.isoformat() for d in p['dias']],
-                'clase_mes': p['clase_mes']
-            })
-        
-        elementos = get_elementos_ordenados()
-        
-        # Calcular rango de fechas visible en el tablero
-        if periodos:
-            rango_inicio = periodos[0]['fecha_inicio'].date().isoformat()
-            rango_fin = periodos[-1]['fecha_fin'].date().isoformat()
-        else:
-            rango_inicio = rango_fin = f"{year}-01-01"
-
-        # Filtrar KPIs por periodicidad y por períodos activos
-        elementos_filtrados = []
-        for elem in elementos:
-            if elem['tipo'] == 'separador':
-                elementos_filtrados.append(elem)
-            elif elem['tipo'] == 'kpi':
-                periodicidad_str = (elem.get('periodicidad') or '').strip().lower()
-                if not periodicidad_str:
-                    pass  # sin periodicidad definida no aplica filtro de reunión
-                else:
-                    periodicidades = [p.strip() for p in periodicidad_str.split(',') if p.strip()]
-                    if tipo_reunion not in periodicidades:
-                        continue
-                if not kpi_activo_en_rango(elem['id'], rango_inicio, rango_fin):
-                    continue
-                elementos_filtrados.append(elem)
-        
-        kpis_filtrados = [e for e in elementos_filtrados if e['tipo'] == 'kpi']
-        valores_obj = {}
-        valores_real = {}
-        valores_gatillo = {}
-        
-        for kpi in kpis_filtrados:
-            obj_guardado, real_guardado, gatillo_guardado = get_valores(kpi['id'], year)
-            obj_por_periodo = {}
-            real_por_periodo = {}
-            gatillo_por_periodo = {}
-            
-            if tipo_reunion == 'diaria':
-                for p in periodos:
-                    fecha_key = p['fecha_inicio'].date().isoformat()
-                    obj_por_periodo[fecha_key] = obj_guardado.get(fecha_key, '')
-                    real_por_periodo[fecha_key] = real_guardado.get(fecha_key, '')
-                    gatillo_por_periodo[fecha_key] = gatillo_guardado.get(fecha_key, '')
-            else:
-                for p in periodos:
-                    obj_calc, real_calc, gatillo_calc = agregar_valores_periodo(
-                        kpi, p, obj_guardado, real_guardado, gatillo_guardado
-                    )
-                    fecha_key = p['fecha_inicio'].date().isoformat()
-                    obj_por_periodo[fecha_key] = obj_calc if obj_calc is not None else ''
-                    real_por_periodo[fecha_key] = real_calc if real_calc is not None else ''
-                    gatillo_por_periodo[fecha_key] = gatillo_calc if gatillo_calc is not None else ''
-            
-            valores_obj[kpi['id']] = obj_por_periodo
-            valores_real[kpi['id']] = real_por_periodo
-            valores_gatillo[kpi['id']] = gatillo_por_periodo
-        
-        return jsonify({
-            'periodos': periodos_json,
-            'elementos': elementos_filtrados,
-            'valoresObj': valores_obj,
-            'valoresReal': valores_real,
-            'valoresGatillo': valores_gatillo,
-            'mesesUnicos': meses_unicos,
-            'yearActual': datetime.now().year,
-            'mesActual': datetime.now().month
+    # Obtener año actual si no se especifica
+    year = int(request.args.get('year', datetime.now().year))
+    tipo_reunion = request.args.get('tipo', 'diaria')
+    periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
+    periodos_json = []
+    for p in periodos:
+        periodos_json.append({
+            'nombre': p['nombre'],
+            'nombre_sub': p.get('nombre_sub', ''),
+            'fecha_inicio': p['fecha_inicio'].isoformat(),
+            'fecha_fin': p['fecha_fin'].isoformat(),
+            'dias': [d.isoformat() for d in p['dias']],
+            'clase_mes': p['clase_mes']
         })
-    except Exception as e:
-        import traceback
-        traceback.print_exc()
-        return jsonify({'error': str(e)}), 500
+    
+    elementos = get_elementos_ordenados()
+    
+    # Calcular rango de fechas visible en el tablero
+    if periodos:
+        rango_inicio = periodos[0]['fecha_inicio'].date().isoformat()
+        rango_fin = periodos[-1]['fecha_fin'].date().isoformat()
+    else:
+        rango_inicio = rango_fin = f"{year}-01-01"
+
+    # Filtrar KPIs por periodicidad y por períodos activos
+    elementos_filtrados = []
+    for elem in elementos:
+        if elem['tipo'] == 'separador':
+            elementos_filtrados.append(elem)
+        elif elem['tipo'] == 'kpi':
+            periodicidad_str = (elem.get('periodicidad') or '').strip().lower()
+            if not periodicidad_str:
+                pass  # sin periodicidad definida no aplica filtro de reunión
+            else:
+                periodicidades = [p.strip() for p in periodicidad_str.split(',') if p.strip()]
+                if tipo_reunion not in periodicidades:
+                    continue
+            if not kpi_activo_en_rango(elem['id'], rango_inicio, rango_fin):
+                continue
+            elementos_filtrados.append(elem)
+    
+    kpis_filtrados = [e for e in elementos_filtrados if e['tipo'] == 'kpi']
+    valores_obj = {}
+    valores_real = {}
+    valores_gatillo = {}
+    
+    for kpi in kpis_filtrados:
+        obj_guardado, real_guardado, gatillo_guardado = get_valores(kpi['id'], year)
+        obj_por_periodo = {}
+        real_por_periodo = {}
+        gatillo_por_periodo = {}
+        
+        if tipo_reunion == 'diaria':
+            for p in periodos:
+                fecha_key = p['fecha_inicio'].date().isoformat()
+                obj_por_periodo[fecha_key] = obj_guardado.get(fecha_key, '')
+                real_por_periodo[fecha_key] = real_guardado.get(fecha_key, '')
+                gatillo_por_periodo[fecha_key] = gatillo_guardado.get(fecha_key, '')
+        else:
+            for p in periodos:
+                obj_calc, real_calc, gatillo_calc = agregar_valores_periodo(
+                    kpi, p, obj_guardado, real_guardado, gatillo_guardado
+                )
+                fecha_key = p['fecha_inicio'].date().isoformat()
+                obj_por_periodo[fecha_key] = obj_calc if obj_calc is not None else ''
+                real_por_periodo[fecha_key] = real_calc if real_calc is not None else ''
+                gatillo_por_periodo[fecha_key] = gatillo_calc if gatillo_calc is not None else ''
+        
+        valores_obj[kpi['id']] = obj_por_periodo
+        valores_real[kpi['id']] = real_por_periodo
+        valores_gatillo[kpi['id']] = gatillo_por_periodo
+    
+    return jsonify({
+        'periodos': periodos_json,
+        'elementos': elementos_filtrados,
+        'valoresObj': valores_obj,
+        'valoresReal': valores_real,
+        'valoresGatillo': valores_gatillo,
+        'mesesUnicos': meses_unicos,
+        'yearActual': datetime.now().year,
+        'mesActual': datetime.now().month
+    })
 
 
 @app.route('/api/valor', methods=['POST'])
@@ -255,6 +255,73 @@ def api_agregar_periodo(kpi_id):
 @app.route('/api/periodo/<int:periodo_id>', methods=['DELETE'])
 def api_eliminar_periodo(periodo_id):
     eliminar_periodo_activo(periodo_id)
+    return jsonify({'ok': True})
+
+
+# ── COMENTARIOS ──────────────────────────────────────────────────────────────
+
+@app.route('/api/comentario', methods=['POST'])
+def guardar_comentario():
+    from db import guardar_comentario as db_guardar_comentario
+    data = request.json
+    db_guardar_comentario(
+        kpi_id=data['kpi_id'],
+        fecha=data['fecha'],
+        tipo=data['tipo'],
+        comentario=data.get('comentario', ''),
+        plan_accion=data.get('plan_accion', '')
+    )
+    return jsonify({'ok': True})
+
+
+@app.route('/api/comentario/<int:kpi_id>/<fecha>/<tipo>', methods=['GET'])
+def obtener_comentario(kpi_id, fecha, tipo):
+    from db import obtener_comentario as db_obtener_comentario
+    return jsonify(db_obtener_comentario(kpi_id, fecha, tipo))
+
+
+# ── ACCION LOG ───────────────────────────────────────────────────────────────
+
+@app.route('/api/acciones', methods=['GET'])
+def listar_acciones():
+    from db import get_acciones
+    return jsonify(get_acciones())
+
+
+@app.route('/api/accion', methods=['POST'])
+def crear_accion():
+    from db import crear_accion as db_crear_accion
+    data = request.json
+    accion_id = db_crear_accion(data)
+    return jsonify({'id': accion_id})
+
+
+@app.route('/api/accion/<int:accion_id>', methods=['PUT'])
+def actualizar_accion(accion_id):
+    from db import actualizar_accion as db_actualizar_accion
+    data = request.json
+    db_actualizar_accion(accion_id, data)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/accion/<int:accion_id>', methods=['DELETE'])
+def eliminar_accion(accion_id):
+    from db import eliminar_accion as db_eliminar_accion
+    db_eliminar_accion(accion_id)
+    return jsonify({'ok': True})
+
+
+@app.route('/api/opciones_menu', methods=['GET'])
+def get_opciones_menu():
+    from db import get_opciones_menu
+    return jsonify(get_opciones_menu())
+
+
+@app.route('/api/opcion_menu', methods=['POST'])
+def agregar_opcion_menu():
+    from db import agregar_opcion_menu
+    data = request.json
+    agregar_opcion_menu(data['categoria'], data['valor'])
     return jsonify({'ok': True})
 
 
@@ -760,4 +827,5 @@ if __name__ == '__main__':
             webbrowser.open_new('http://127.0.0.1:5000')
         Timer(1, abrir_navegador).start()
     
-    # Ej
+    # Ejecutar la aplicación
+    app.run(debug=not is_production, host='0.0.0.0', port=port)

@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from datetime import datetime
 
 # ── Detectar si usar PostgreSQL o SQLite ─────────────────────────────────────
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
@@ -87,6 +88,39 @@ def init_db():
             FOREIGN KEY(kpi_id) REFERENCES maestro_kpi(id)
         )''')
 
+        c.execute('''CREATE TABLE IF NOT EXISTS comentarios (
+            id SERIAL PRIMARY KEY,
+            kpi_id INTEGER,
+            fecha TEXT,
+            tipo TEXT,
+            comentario TEXT,
+            plan_accion TEXT,
+            fecha_creacion TEXT,
+            FOREIGN KEY(kpi_id) REFERENCES maestro_kpi(id)
+        )''')
+
+        c.execute('''CREATE TABLE IF NOT EXISTS acciones (
+            id SERIAL PRIMARY KEY,
+            fecha TEXT,
+            accion TEXT,
+            descripcion TEXT,
+            reunion TEXT,
+            tema TEXT,
+            pilar_dpo TEXT,
+            responsable TEXT,
+            estado TEXT,
+            prioridad TEXT,
+            fecha_creacion TEXT,
+            fecha_modificacion TEXT
+        )''')
+
+        c.execute('''CREATE TABLE IF NOT EXISTS opciones_menu (
+            id SERIAL PRIMARY KEY,
+            categoria TEXT,
+            valor TEXT,
+            UNIQUE(categoria, valor)
+        )''')
+
         c.execute("SELECT COUNT(*) FROM maestro_kpi WHERE tipo='kpi'")
         if c.fetchone()[0] == 0:
             c.execute('''INSERT INTO maestro_kpi
@@ -138,6 +172,39 @@ def init_db():
             fecha_inicio TEXT,
             fecha_fin TEXT,
             FOREIGN KEY(kpi_id) REFERENCES maestro_kpi(id)
+        )''')
+
+        c.execute('''CREATE TABLE IF NOT EXISTS comentarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            kpi_id INTEGER,
+            fecha TEXT,
+            tipo TEXT,
+            comentario TEXT,
+            plan_accion TEXT,
+            fecha_creacion TEXT,
+            FOREIGN KEY(kpi_id) REFERENCES maestro_kpi(id)
+        )''')
+
+        c.execute('''CREATE TABLE IF NOT EXISTS acciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            fecha TEXT,
+            accion TEXT,
+            descripcion TEXT,
+            reunion TEXT,
+            tema TEXT,
+            pilar_dpo TEXT,
+            responsable TEXT,
+            estado TEXT,
+            prioridad TEXT,
+            fecha_creacion TEXT,
+            fecha_modificacion TEXT
+        )''')
+
+        c.execute('''CREATE TABLE IF NOT EXISTS opciones_menu (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            categoria TEXT,
+            valor TEXT,
+            UNIQUE(categoria, valor)
         )''')
 
         c.execute("SELECT COUNT(*) FROM maestro_kpi WHERE tipo='kpi'")
@@ -420,3 +487,138 @@ def kpi_activo_en_rango(kpi_id, fecha_inicio_str, fecha_fin_str):
     activo = c.fetchone()[0] > 0
     conn.close()
     return activo
+
+
+# ── COMENTARIOS ──────────────────────────────────────────────────────────────
+
+def guardar_comentario(kpi_id, fecha, tipo, comentario, plan_accion):
+    conn = get_conn()
+    c = conn.cursor()
+    # Eliminar comentario existente
+    c.execute(adapt_query(
+        "DELETE FROM comentarios WHERE kpi_id=? AND fecha=? AND tipo=?"),
+        (kpi_id, fecha, tipo))
+    if comentario or plan_accion:
+        c.execute(adapt_query(
+            "INSERT INTO comentarios (kpi_id, fecha, tipo, comentario, plan_accion, fecha_creacion) VALUES (?,?,?,?,?,?)"),
+            (kpi_id, fecha, tipo, comentario, plan_accion, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+
+
+def obtener_comentario(kpi_id, fecha, tipo):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute(adapt_query(
+        "SELECT comentario, plan_accion FROM comentarios WHERE kpi_id=? AND fecha=? AND tipo=?"),
+        (kpi_id, fecha, tipo))
+    row = c.fetchone()
+    conn.close()
+    if row:
+        return {'comentario': row[0] or '', 'plan_accion': row[1] or ''}
+    return {'comentario': '', 'plan_accion': ''}
+
+
+# ── ACCION LOG ──────────────────────────────────────────────────────────────
+
+def get_acciones():
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT * FROM acciones ORDER BY fecha DESC, fecha_creacion DESC")
+    rows = c.fetchall()
+    conn.close()
+    return [{
+        'id': r[0],
+        'fecha': r[1],
+        'accion': r[2],
+        'descripcion': r[3],
+        'reunion': r[4],
+        'tema': r[5],
+        'pilar_dpo': r[6],
+        'responsable': r[7],
+        'estado': r[8],
+        'prioridad': r[9],
+        'fecha_creacion': r[10],
+        'fecha_modificacion': r[11]
+    } for r in rows]
+
+
+def crear_accion(data):
+    conn = get_conn()
+    c = conn.cursor()
+    ahora = datetime.now().isoformat()
+    if USE_PG:
+        c.execute('''INSERT INTO acciones
+            (fecha, accion, descripcion, reunion, tema, pilar_dpo, responsable, estado, prioridad, fecha_creacion, fecha_modificacion)
+            VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) RETURNING id''',
+            (data['fecha'], data['accion'], data['descripcion'], data['reunion'],
+             data['tema'], data['pilar_dpo'], data['responsable'], data['estado'],
+             data['prioridad'], ahora, ahora))
+        new_id = c.fetchone()[0]
+    else:
+        c.execute('''INSERT INTO acciones
+            (fecha, accion, descripcion, reunion, tema, pilar_dpo, responsable, estado, prioridad, fecha_creacion, fecha_modificacion)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?)''',
+            (data['fecha'], data['accion'], data['descripcion'], data['reunion'],
+             data['tema'], data['pilar_dpo'], data['responsable'], data['estado'],
+             data['prioridad'], ahora, ahora))
+        new_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return new_id
+
+
+def actualizar_accion(accion_id, data):
+    conn = get_conn()
+    c = conn.cursor()
+    ahora = datetime.now().isoformat()
+    c.execute(adapt_query('''UPDATE acciones SET
+        fecha=?, accion=?, descripcion=?, reunion=?, tema=?, pilar_dpo=?,
+        responsable=?, estado=?, prioridad=?, fecha_modificacion=?
+        WHERE id=?'''),
+        (data['fecha'], data['accion'], data['descripcion'], data['reunion'],
+         data['tema'], data['pilar_dpo'], data['responsable'], data['estado'],
+         data['prioridad'], ahora, accion_id))
+    conn.commit()
+    conn.close()
+
+
+def eliminar_accion(accion_id):
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute(adapt_query("DELETE FROM acciones WHERE id=?"), (accion_id,))
+    conn.commit()
+    conn.close()
+
+
+# ── OPCIONES PARA MENÚS DESPLEGABLES ────────────────────────────────────────
+
+def get_opciones_menu():
+    conn = get_conn()
+    c = conn.cursor()
+    c.execute("SELECT categoria, valor FROM opciones_menu ORDER BY categoria, valor")
+    rows = c.fetchall()
+    conn.close()
+    opciones = {}
+    for cat, val in rows:
+        if cat not in opciones:
+            opciones[cat] = []
+        opciones[cat].append(val)
+    return opciones
+
+
+def agregar_opcion_menu(categoria, valor):
+    conn = get_conn()
+    c = conn.cursor()
+    # Verificar si ya existe
+    c.execute(adapt_query(
+        "SELECT id FROM opciones_menu WHERE categoria=? AND valor=?"),
+        (categoria, valor))
+    if c.fetchone():
+        conn.close()
+        return
+    c.execute(adapt_query(
+        "INSERT INTO opciones_menu (categoria, valor) VALUES (?,?)"),
+        (categoria, valor))
+    conn.commit()
+    conn.close()
