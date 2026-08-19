@@ -117,9 +117,9 @@
             color: white;
             font-weight: bold;
             border-radius: 50%;
-            width: 28px;
-            height: 28px;
-            font-size: 16px;
+            width: 26px;
+            height: 26px;
+            font-size: 14px;
             cursor: pointer;
             padding: 0;
             line-height: 1;
@@ -128,8 +128,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-left: 10px;
-            vertical-align: middle;
+            flex-shrink: 0;
         }
         .btn-ayuda:hover {
             background: #2c3e50;
@@ -228,59 +227,65 @@
         .separador-fila td { background-color: #ffa500 !important; color: black !important; font-weight: bold; text-align: left !important; }
         .separador-fila td.sticky-col { background-color: #ffa500 !important; }
 
-        /* Sección Días del Último Accidente */
+        /* Sección Días del Último Accidente - COMPACTA */
         .dias-accidente {
             background: linear-gradient(135deg, #1a2a3a, #2c3e50);
             color: white;
-            padding: 15px 25px;
-            border-radius: 10px;
-            margin: 15px 0 20px 0;
+            padding: 8px 20px;
+            border-radius: 8px;
+            margin: 10px 0 18px 0;
             display: flex;
             align-items: center;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            gap: 20px 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            justify-content: space-between;
+            flex-wrap: nowrap;
+            gap: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            min-height: 48px;
         }
         .dias-accidente .dias-texto {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0;
         }
         .dias-accidente .dias-texto .icono {
-            font-size: 24px;
+            font-size: 18px;
         }
         .dias-accidente .dias-texto .label {
-            font-size: 16px;
+            font-size: 13px;
             font-weight: 600;
             opacity: 0.9;
+            white-space: nowrap;
         }
         .dias-accidente .dias-texto .valor {
-            font-size: 28px;
+            font-size: 22px;
             font-weight: 800;
             color: #ffd700;
             background: rgba(255,215,0,0.15);
-            padding: 2px 16px;
-            border-radius: 6px;
-            border: 2px solid rgba(255,215,0,0.3);
-            min-width: 60px;
+            padding: 0 12px;
+            border-radius: 4px;
+            border: 1px solid rgba(255,215,0,0.3);
+            min-width: 40px;
             text-align: center;
+            line-height: 34px;
         }
         .dias-accidente .fecha-accidente {
             display: flex;
             align-items: center;
-            gap: 8px;
-            font-size: 14px;
+            gap: 6px;
+            font-size: 13px;
             opacity: 0.9;
+            flex-shrink: 0;
         }
         .dias-accidente .fecha-accidente input {
             background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.25);
             color: white;
-            padding: 5px 10px;
+            padding: 3px 8px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 13px;
             cursor: pointer;
+            width: 130px;
         }
         .dias-accidente .fecha-accidente input::-webkit-calendar-picker-indicator {
             filter: invert(1);
@@ -290,43 +295,48 @@
             background: #ffd700;
             color: #1a2a3a;
             border: none;
-            padding: 6px 18px;
+            padding: 3px 14px;
             border-radius: 4px;
             font-weight: bold;
             cursor: pointer;
             transition: 0.2s;
+            font-size: 12px;
+            white-space: nowrap;
+            height: 30px;
         }
         .dias-accidente .btn-actualizar:hover {
             background: #ffed4a;
             transform: scale(1.02);
         }
 
-        /* Header con título y estado */
+        /* Header con título y estado - COMPACTO */
         .header-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 10px;
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
         .header-top .titulo-section {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
+            flex-shrink: 0;
         }
         .header-top .titulo-section h2 {
             margin: 0;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             display: inline-block;
         }
         .header-top .estado-section {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
+            flex-shrink: 0;
         }
         .header-top .estado-section #estado {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #2c3e50;
         }
@@ -345,7 +355,7 @@
 </div>
 <div class="main-content" id="mainContent">
     <div class="toolbar">
-        <button id="toggleSidebarBtn2" style="background:#2c3e50; color:white; border:none; padding:8px 12px; border-radius:4px;">☰ Menú</button>
+        <button id="toggleSidebarBtn2" style="background:#2c3e50; color:white; border:none; padding:6px 12px; border-radius:4px; font-size:13px;">☰ Menú</button>
         <span style="flex:1"></span>
         <button class="btn-ayuda" id="btnAyudaPrincipal" title="Ayuda">?</button>
     </div>
@@ -361,7 +371,7 @@
         </div>
     </div>
 
-    <!-- Sección Días del Último Accidente -->
+    <!-- Sección Días del Último Accidente - COMPACTA -->
     <div class="dias-accidente" id="diasAccidenteSection">
         <div class="dias-texto">
             <span class="icono">🛡️</span>
@@ -369,7 +379,7 @@
             <span class="valor" id="diasAccidenteValor">--</span>
         </div>
         <div class="fecha-accidente">
-            <span>📅 Fecha del último accidente:</span>
+            <span>📅</span>
             <input type="date" id="fechaAccidenteInput">
             <button class="btn-actualizar" id="btnActualizarAccidente">Actualizar</button>
         </div>
@@ -739,241 +749,4 @@
                 
                 // Fila OBJETIVO
                 html += `<tr class="fila-obj ${claseCritica}" data-kpi-id="${kpi.id}" data-unidad="${kpi.unidad}" data-calculo="${kpi.calculo}" data-polaridad="${polaridad}">`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="0" style="text-align:center; vertical-align:middle;">
-                            <button class="btn-kpi-info" data-kpid="${kpi.id}" data-kpijson='${escapeAttr(JSON.stringify(kpi))}'>?</button>
-                          </td>`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="1">${escapeHtml(kpi.duenio)}</td>`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="2">${escapeHtml(kpi.codigo)}</td>`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="3" style="text-align:left;">${escapeHtml(kpi.descripcion)}</td>`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="4">${escapeHtml(kpi.unidad)}</td>`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="5">${kpi.calculo === 'suma' ? 'Suma' : kpi.calculo === 'promedio' ? 'Promedio' : 'Máximo'}</td>`;
-                html += `<td class="sticky-col" rowspan="${rowspan}" data-col-index="6">${escapeHtml(polaridad)}</td>`;
-                html += `<td class="mtd-val sticky-col" data-col-index="7"></td>`;
-                html += `<td class="subtitulo sticky-col" data-col-index="8">Obj</td>`;
-                for (let j = 0; j < periodos.length; j++) {
-                    const fechaKey = periodos[j].fecha_inicio.split('T')[0];
-                    const val = objMap[fechaKey];
-                    const valFmt = (val !== '' && val !== null && val !== undefined) ? formatearValor(val, kpi.unidad) : '';
-                    html += `<td class="valor-obj mes-${periodos[j].clase_mes} editable" contenteditable="true" data-periodo="${fechaKey}" data-tipo="obj">${valFmt}</td>`;
-                }
-                html += '</tr>';
-                
-                // Fila GATILLO (solo si es crítico)
-                if (esCritico) {
-                    html += `<tr class="fila-gatillo ${claseCritica}" data-kpi-id="${kpi.id}">`;
-                    html += `<td class="mtd-val sticky-col" data-col-index="7"></td>`;
-                    html += `<td class="subtitulo sticky-col" data-col-index="8">Gatillo</td>`;
-                    for (let j = 0; j < periodos.length; j++) {
-                        const fechaKey = periodos[j].fecha_inicio.split('T')[0];
-                        const val = gatilloMap[fechaKey];
-                        const valFmt = (val !== '' && val !== null && val !== undefined) ? formatearValor(val, kpi.unidad) : '';
-                        html += `<td class="valor-gatillo mes-${periodos[j].clase_mes} editable" contenteditable="true" data-periodo="${fechaKey}" data-tipo="gatillo">${valFmt}</td>`;
-                    }
-                    html += '</tr>';
-                }
-                
-                // Fila REAL
-                html += `<tr class="fila-real ${claseCritica}" data-kpi-id="${kpi.id}">`;
-                html += `<td class="mtd-val sticky-col" data-col-index="7"></td>`;
-                html += `<td class="subtitulo sticky-col" data-col-index="8">Real</td>`;
-                for (let j = 0; j < periodos.length; j++) {
-                    const fechaKey = periodos[j].fecha_inicio.split('T')[0];
-                    const val = realMap[fechaKey];
-                    const valFmt = (val !== '' && val !== null && val !== undefined) ? formatearValor(val, kpi.unidad) : '';
-                    html += `<td class="valor-real mes-${periodos[j].clase_mes} editable" contenteditable="true" data-periodo="${fechaKey}" data-tipo="real">${valFmt}</td>`;
-                }
-                html += '</tr>';
-            }
-        }
-        html += '</tbody></table></div>';
-        container.innerHTML = html;
-        adjuntarEventos();
-        vincularScrollTable();
-        document.querySelectorAll('.btn-kpi-info').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const kpiData = JSON.parse(btn.getAttribute('data-kpijson'));
-                mostrarModal(kpiData);
-            });
-        });
-        setTimeout(() => {
-            ajustarStickyHeader();
-            ajustarStickyCols();
-            recalcularMTD();
-        }, 100);
-    }
-
-    function escapeAttr(str) {
-        if (!str) return '';
-        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-    }
-
-    function adjuntarEventos() {
-        document.querySelectorAll('.valor-obj, .valor-real, .valor-gatillo').forEach(el => {
-            el.addEventListener('blur', guardarCambio);
-            el.addEventListener('keydown', manejarEnter);
-        });
-    }
-
-    function manejarEnter(e) {
-        if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
-    }
-
-    async function guardarCambio(e) {
-        const celda = e.target;
-        const claseFila = celda.closest('tr').classList;
-        let filaObj;
-        if (claseFila.contains('fila-obj')) {
-            filaObj = celda.closest('tr');
-        } else if (claseFila.contains('fila-gatillo')) {
-            filaObj = celda.closest('tr').previousElementSibling;
-        } else if (claseFila.contains('fila-real')) {
-            filaObj = celda.closest('tr').previousElementSibling;
-            if (filaObj && filaObj.classList.contains('fila-gatillo')) {
-                filaObj = filaObj.previousElementSibling;
-            }
-        }
-        if (!filaObj || !filaObj.classList.contains('fila-obj')) return;
-
-        const kpiId   = filaObj.getAttribute('data-kpi-id');
-        const unidad  = filaObj.getAttribute('data-unidad');
-        const tipo    = celda.getAttribute('data-tipo');
-        const periodo = celda.getAttribute('data-periodo');
-        const valorNum = parsearValor(celda.innerText.trim(), unidad);
-
-        const estadoSpan = document.getElementById('estado');
-        const original = estadoSpan.innerText;
-        estadoSpan.innerText = 'Guardando...';
-        try {
-            await fetch('/api/valor', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ kpi_id: kpiId, fecha: periodo, tipo: tipo, valor: valorNum })
-            });
-            if (tipo === 'obj') {
-                if (!currentData.valoresObj[kpiId]) currentData.valoresObj[kpiId] = {};
-                currentData.valoresObj[kpiId][periodo] = (valorNum === null) ? '' : valorNum;
-            } else if (tipo === 'real') {
-                if (!currentData.valoresReal[kpiId]) currentData.valoresReal[kpiId] = {};
-                currentData.valoresReal[kpiId][periodo] = (valorNum === null) ? '' : valorNum;
-            } else if (tipo === 'gatillo') {
-                if (!currentData.valoresGatillo[kpiId]) currentData.valoresGatillo[kpiId] = {};
-                currentData.valoresGatillo[kpiId][periodo] = (valorNum === null) ? '' : valorNum;
-            }
-            celda.innerText = (valorNum !== null) ? formatearValor(valorNum, unidad) : '';
-            recalcularMTD();
-            estadoSpan.innerText = original;
-        } catch(err) {
-            console.error(err);
-            estadoSpan.innerText = 'Error';
-            setTimeout(() => { estadoSpan.innerText = original; }, 2000);
-        }
-    }
-
-    function recalcularMTD() {
-        const filasObj = document.querySelectorAll('.fila-obj');
-        
-        filasObj.forEach(filaObj => {
-            let filaReal = filaObj.nextElementSibling;
-            if (filaReal && filaReal.classList.contains('fila-gatillo')) {
-                filaReal = filaReal.nextElementSibling;
-            }
-            if (!filaReal || !filaReal.classList.contains('fila-real')) return;
-            
-            const metodo = filaObj.getAttribute('data-calculo');
-            const polaridad = filaObj.getAttribute('data-polaridad') || '▼';
-            const unidad = filaObj.getAttribute('data-unidad');
-            
-            const celdasObj = Array.from(filaObj.querySelectorAll('.valor-obj'));
-            const celdasReal = Array.from(filaReal.querySelectorAll('.valor-real'));
-            const numPeriodos = celdasObj.length;
-            
-            let valoresObjVisibles = [];
-            let valoresRealVisibles = [];
-            
-            for (let i = 0; i < numPeriodos; i++) {
-                const tdObj = celdasObj[i];
-                const tdReal = celdasReal[i];
-                const visible = tdObj.style.display !== 'none' && tdReal.style.display !== 'none';
-                
-                const valObj = parsearValor(tdObj.innerText, unidad);
-                const valReal = parsearValor(tdReal.innerText, unidad);
-                
-                if (visible) {
-                    if (valObj !== null) valoresObjVisibles.push(valObj);
-                    if (valReal !== null) valoresRealVisibles.push(valReal);
-                }
-                
-                tdReal.classList.remove('verde', 'rojo');
-                if (valObj !== null && valReal !== null) {
-                    let ok = false;
-                    if (polaridad === '▼')      ok = valReal <= valObj;
-                    else if (polaridad === '▲') ok = valReal >= valObj;
-                    else                         ok = Math.abs(valReal - valObj) < 0.000001;
-                    tdReal.classList.add(ok ? 'verde' : 'rojo');
-                }
-            }
-            
-            let mtdObj = null;
-            if (valoresObjVisibles.length > 0) {
-                if (metodo === 'suma') mtdObj = valoresObjVisibles.reduce((a,b) => a+b, 0);
-                else if (metodo === 'promedio') mtdObj = valoresObjVisibles.reduce((a,b) => a+b, 0) / valoresObjVisibles.length;
-                else if (metodo === 'maximo') mtdObj = Math.max(...valoresObjVisibles);
-            }
-            
-            let mtdReal = null;
-            if (valoresRealVisibles.length > 0) {
-                if (metodo === 'suma') mtdReal = valoresRealVisibles.reduce((a,b) => a+b, 0);
-                else if (metodo === 'promedio') mtdReal = valoresRealVisibles.reduce((a,b) => a+b, 0) / valoresRealVisibles.length;
-                else if (metodo === 'maximo') mtdReal = Math.max(...valoresRealVisibles);
-            }
-            
-            const mtdCeldaObj = filaObj.querySelector('.mtd-val');
-            const mtdCeldaReal = filaReal.querySelector('.mtd-val');
-            mtdCeldaObj.innerText = (mtdObj !== null) ? formatearValor(mtdObj, unidad) : '';
-            mtdCeldaReal.innerText = (mtdReal !== null) ? formatearValor(mtdReal, unidad) : '';
-            
-            mtdCeldaReal.classList.remove('mtd-verde', 'mtd-rojo');
-            if (mtdObj !== null && mtdReal !== null) {
-                let okMtd = false;
-                if (polaridad === '▼')      okMtd = mtdReal <= mtdObj;
-                else if (polaridad === '▲') okMtd = mtdReal >= mtdObj;
-                else                         okMtd = Math.abs(mtdReal - mtdObj) < 0.000001;
-                mtdCeldaReal.classList.add(okMtd ? 'mtd-verde' : 'mtd-rojo');
-            }
-            
-            const filaGatillo = filaObj.nextElementSibling;
-            if (filaGatillo && filaGatillo.classList.contains('fila-gatillo')) {
-                const celdasGatillo = Array.from(filaGatillo.querySelectorAll('.valor-gatillo'));
-                let valoresGatilloVisibles = [];
-                for (let i = 0; i < celdasGatillo.length; i++) {
-                    const tdGat = celdasGatillo[i];
-                    if (tdGat.style.display !== 'none') {
-                        const valGat = parsearValor(tdGat.innerText, unidad);
-                        if (valGat !== null) valoresGatilloVisibles.push(valGat);
-                    }
-                }
-                let mtdGatillo = null;
-                if (valoresGatilloVisibles.length > 0) {
-                    if (metodo === 'suma') mtdGatillo = valoresGatilloVisibles.reduce((a,b) => a+b, 0);
-                    else if (metodo === 'promedio') mtdGatillo = valoresGatilloVisibles.reduce((a,b) => a+b, 0) / valoresGatilloVisibles.length;
-                    else if (metodo === 'maximo') mtdGatillo = Math.max(...valoresGatilloVisibles);
-                }
-                const mtdCeldaGatillo = filaGatillo.querySelector('.mtd-val');
-                mtdCeldaGatillo.innerText = (mtdGatillo !== null) ? formatearValor(mtdGatillo, unidad) : '';
-            }
-        });
-    }
-
-    function escapeHtml(str) {
-        if (!str) return '';
-        return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    }
-
-    window.addEventListener('resize', () => { ajustarStickyHeader(); ajustarStickyCols(); });
-    cargarBtn.addEventListener('click', cargarTablero);
-    // Cargar automáticamente al iniciar
-    cargarTablero();
-</script>
-</body>
-</html>
+                html += `<td class
