@@ -190,8 +190,13 @@
     }
 
     async function cargarOpcionesMenu() {
-        const resp = await fetch('/api/opciones_menu');
-        opcionesMenu = await resp.json();
+        try {
+            const resp = await fetch('/api/opciones_menu');
+            opcionesMenu = await resp.json();
+        } catch(e) {
+            console.error('Error cargando opciones:', e);
+            opcionesMenu = {};
+        }
     }
 
     function cargarOpcionesEnSelects() {
@@ -232,41 +237,49 @@
     }
 
     async function cargarAcciones() {
-        const resp = await fetch('/api/acciones');
-        const acciones = await resp.json();
-        const tbody = document.getElementById('cuerpoAcciones');
-        tbody.innerHTML = '';
-        for (const a of acciones) {
-            const row = tbody.insertRow();
-            row.insertCell(0).textContent = a.fecha || '';
-            row.insertCell(1).textContent = a.accion || '';
-            row.insertCell(2).textContent = a.descripcion || '';
-            row.insertCell(3).textContent = a.reunion || '';
-            row.insertCell(4).textContent = a.tema || '';
-            row.insertCell(5).textContent = a.pilar_dpo || '';
-            row.insertCell(6).textContent = a.responsable || '';
-            row.insertCell(7).innerHTML = `<span class="tag tag-estado">${a.estado || ''}</span>`;
-            row.insertCell(8).innerHTML = `<span class="tag tag-prioridad">${a.prioridad || ''}</span>`;
-            row.insertCell(9).textContent = a.fecha_creacion ? a.fecha_creacion.replace('T', ' ').slice(0, 19) : '';
-            row.insertCell(10).textContent = a.fecha_modificacion ? a.fecha_modificacion.replace('T', ' ').slice(0, 19) : '';
-            const cellAcc = row.insertCell(11);
-            const btnEditar = document.createElement('button');
-            btnEditar.textContent = '✏️';
-            btnEditar.className = 'btn btn-editar';
-            btnEditar.onclick = () => abrirModal(a);
-            const btnEliminar = document.createElement('button');
-            btnEliminar.textContent = '🗑️';
-            btnEliminar.className = 'btn btn-eliminar';
-            btnEliminar.onclick = () => eliminarAccion(a.id);
-            cellAcc.appendChild(btnEditar);
-            cellAcc.appendChild(btnEliminar);
+        try {
+            const resp = await fetch('/api/acciones');
+            const acciones = await resp.json();
+            const tbody = document.getElementById('cuerpoAcciones');
+            tbody.innerHTML = '';
+            for (const a of acciones) {
+                const row = tbody.insertRow();
+                row.insertCell(0).textContent = a.fecha || '';
+                row.insertCell(1).textContent = a.accion || '';
+                row.insertCell(2).textContent = a.descripcion || '';
+                row.insertCell(3).textContent = a.reunion || '';
+                row.insertCell(4).textContent = a.tema || '';
+                row.insertCell(5).textContent = a.pilar_dpo || '';
+                row.insertCell(6).textContent = a.responsable || '';
+                row.insertCell(7).innerHTML = `<span class="tag tag-estado">${a.estado || ''}</span>`;
+                row.insertCell(8).innerHTML = `<span class="tag tag-prioridad">${a.prioridad || ''}</span>`;
+                row.insertCell(9).textContent = a.fecha_creacion ? a.fecha_creacion.replace('T', ' ').slice(0, 19) : '';
+                row.insertCell(10).textContent = a.fecha_modificacion ? a.fecha_modificacion.replace('T', ' ').slice(0, 19) : '';
+                const cellAcc = row.insertCell(11);
+                const btnEditar = document.createElement('button');
+                btnEditar.textContent = '✏️';
+                btnEditar.className = 'btn btn-editar';
+                btnEditar.onclick = () => abrirModal(a);
+                const btnEliminar = document.createElement('button');
+                btnEliminar.textContent = '🗑️';
+                btnEliminar.className = 'btn btn-eliminar';
+                btnEliminar.onclick = () => eliminarAccion(a.id);
+                cellAcc.appendChild(btnEditar);
+                cellAcc.appendChild(btnEliminar);
+            }
+        } catch(e) {
+            console.error('Error cargando acciones:', e);
         }
     }
 
     async function eliminarAccion(id) {
         if (!confirm('¿Eliminar esta acción?')) return;
-        await fetch(`/api/accion/${id}`, { method: 'DELETE' });
-        await cargarAcciones();
+        try {
+            await fetch(`/api/accion/${id}`, { method: 'DELETE' });
+            await cargarAcciones();
+        } catch(e) {
+            alert('Error al eliminar: ' + e.message);
+        }
     }
 
     document.getElementById('accionForm').addEventListener('submit', async (e) => {
@@ -285,9 +298,13 @@
         const id = document.getElementById('accionId').value;
         let url = '/api/accion', method = 'POST';
         if (id) { url = `/api/accion/${id}`; method = 'PUT'; }
-        await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
-        cerrarModal();
-        await cargarAcciones();
+        try {
+            await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            cerrarModal();
+            await cargarAcciones();
+        } catch(e) {
+            alert('Error al guardar: ' + e.message);
+        }
     });
 
     document.getElementById('volverBtn').onclick = () => { window.location.href = '/'; };
