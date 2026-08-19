@@ -80,88 +80,93 @@ def maestro():
 
 @app.route('/api/tablero')
 def api_tablero():
-    # Obtener año actual si no se especifica
-    year = int(request.args.get('year', datetime.now().year))
-    tipo_reunion = request.args.get('tipo', 'diaria')
-    periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
-    periodos_json = []
-    for p in periodos:
-        periodos_json.append({
-            'nombre': p['nombre'],
-            'nombre_sub': p.get('nombre_sub', ''),
-            'fecha_inicio': p['fecha_inicio'].isoformat(),
-            'fecha_fin': p['fecha_fin'].isoformat(),
-            'dias': [d.isoformat() for d in p['dias']],
-            'clase_mes': p['clase_mes']
-        })
-    
-    elementos = get_elementos_ordenados()
-    
-    # Calcular rango de fechas visible en el tablero
-    if periodos:
-        rango_inicio = periodos[0]['fecha_inicio'].date().isoformat()
-        rango_fin = periodos[-1]['fecha_fin'].date().isoformat()
-    else:
-        rango_inicio = rango_fin = f"{year}-01-01"
-
-    # Filtrar KPIs por periodicidad y por períodos activos
-    elementos_filtrados = []
-    for elem in elementos:
-        if elem['tipo'] == 'separador':
-            elementos_filtrados.append(elem)
-        elif elem['tipo'] == 'kpi':
-            periodicidad_str = (elem.get('periodicidad') or '').strip().lower()
-            if not periodicidad_str:
-                pass  # sin periodicidad definida no aplica filtro de reunión
-            else:
-                periodicidades = [p.strip() for p in periodicidad_str.split(',') if p.strip()]
-                if tipo_reunion not in periodicidades:
-                    continue
-            if not kpi_activo_en_rango(elem['id'], rango_inicio, rango_fin):
-                continue
-            elementos_filtrados.append(elem)
-    
-    kpis_filtrados = [e for e in elementos_filtrados if e['tipo'] == 'kpi']
-    valores_obj = {}
-    valores_real = {}
-    valores_gatillo = {}
-    
-    for kpi in kpis_filtrados:
-        obj_guardado, real_guardado, gatillo_guardado = get_valores(kpi['id'], year)
-        obj_por_periodo = {}
-        real_por_periodo = {}
-        gatillo_por_periodo = {}
+    try:
+        # Obtener año actual si no se especifica
+        year = int(request.args.get('year', datetime.now().year))
+        tipo_reunion = request.args.get('tipo', 'diaria')
+        periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
+        periodos_json = []
+        for p in periodos:
+            periodos_json.append({
+                'nombre': p['nombre'],
+                'nombre_sub': p.get('nombre_sub', ''),
+                'fecha_inicio': p['fecha_inicio'].isoformat(),
+                'fecha_fin': p['fecha_fin'].isoformat(),
+                'dias': [d.isoformat() for d in p['dias']],
+                'clase_mes': p['clase_mes']
+            })
         
-        if tipo_reunion == 'diaria':
-            for p in periodos:
-                fecha_key = p['fecha_inicio'].date().isoformat()
-                obj_por_periodo[fecha_key] = obj_guardado.get(fecha_key, '')
-                real_por_periodo[fecha_key] = real_guardado.get(fecha_key, '')
-                gatillo_por_periodo[fecha_key] = gatillo_guardado.get(fecha_key, '')
+        elementos = get_elementos_ordenados()
+        
+        # Calcular rango de fechas visible en el tablero
+        if periodos:
+            rango_inicio = periodos[0]['fecha_inicio'].date().isoformat()
+            rango_fin = periodos[-1]['fecha_fin'].date().isoformat()
         else:
-            for p in periodos:
-                obj_calc, real_calc, gatillo_calc = agregar_valores_periodo(
-                    kpi, p, obj_guardado, real_guardado, gatillo_guardado
-                )
-                fecha_key = p['fecha_inicio'].date().isoformat()
-                obj_por_periodo[fecha_key] = obj_calc if obj_calc is not None else ''
-                real_por_periodo[fecha_key] = real_calc if real_calc is not None else ''
-                gatillo_por_periodo[fecha_key] = gatillo_calc if gatillo_calc is not None else ''
+            rango_inicio = rango_fin = f"{year}-01-01"
+
+        # Filtrar KPIs por periodicidad y por períodos activos
+        elementos_filtrados = []
+        for elem in elementos:
+            if elem['tipo'] == 'separador':
+                elementos_filtrados.append(elem)
+            elif elem['tipo'] == 'kpi':
+                periodicidad_str = (elem.get('periodicidad') or '').strip().lower()
+                if not periodicidad_str:
+                    pass  # sin periodicidad definida no aplica filtro de reunión
+                else:
+                    periodicidades = [p.strip() for p in periodicidad_str.split(',') if p.strip()]
+                    if tipo_reunion not in periodicidades:
+                        continue
+                if not kpi_activo_en_rango(elem['id'], rango_inicio, rango_fin):
+                    continue
+                elementos_filtrados.append(elem)
         
-        valores_obj[kpi['id']] = obj_por_periodo
-        valores_real[kpi['id']] = real_por_periodo
-        valores_gatillo[kpi['id']] = gatillo_por_periodo
-    
-    return jsonify({
-        'periodos': periodos_json,
-        'elementos': elementos_filtrados,
-        'valoresObj': valores_obj,
-        'valoresReal': valores_real,
-        'valoresGatillo': valores_gatillo,
-        'mesesUnicos': meses_unicos,
-        'yearActual': datetime.now().year,
-        'mesActual': datetime.now().month
-    })
+        kpis_filtrados = [e for e in elementos_filtrados if e['tipo'] == 'kpi']
+        valores_obj = {}
+        valores_real = {}
+        valores_gatillo = {}
+        
+        for kpi in kpis_filtrados:
+            obj_guardado, real_guardado, gatillo_guardado = get_valores(kpi['id'], year)
+            obj_por_periodo = {}
+            real_por_periodo = {}
+            gatillo_por_periodo = {}
+            
+            if tipo_reunion == 'diaria':
+                for p in periodos:
+                    fecha_key = p['fecha_inicio'].date().isoformat()
+                    obj_por_periodo[fecha_key] = obj_guardado.get(fecha_key, '')
+                    real_por_periodo[fecha_key] = real_guardado.get(fecha_key, '')
+                    gatillo_por_periodo[fecha_key] = gatillo_guardado.get(fecha_key, '')
+            else:
+                for p in periodos:
+                    obj_calc, real_calc, gatillo_calc = agregar_valores_periodo(
+                        kpi, p, obj_guardado, real_guardado, gatillo_guardado
+                    )
+                    fecha_key = p['fecha_inicio'].date().isoformat()
+                    obj_por_periodo[fecha_key] = obj_calc if obj_calc is not None else ''
+                    real_por_periodo[fecha_key] = real_calc if real_calc is not None else ''
+                    gatillo_por_periodo[fecha_key] = gatillo_calc if gatillo_calc is not None else ''
+            
+            valores_obj[kpi['id']] = obj_por_periodo
+            valores_real[kpi['id']] = real_por_periodo
+            valores_gatillo[kpi['id']] = gatillo_por_periodo
+        
+        return jsonify({
+            'periodos': periodos_json,
+            'elementos': elementos_filtrados,
+            'valoresObj': valores_obj,
+            'valoresReal': valores_real,
+            'valoresGatillo': valores_gatillo,
+            'mesesUnicos': meses_unicos,
+            'yearActual': datetime.now().year,
+            'mesActual': datetime.now().month
+        })
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/valor', methods=['POST'])
@@ -755,5 +760,4 @@ if __name__ == '__main__':
             webbrowser.open_new('http://127.0.0.1:5000')
         Timer(1, abrir_navegador).start()
     
-    # Ejecutar la aplicación
-    app.run(debug=not is_production, host='0.0.0.0', port=port)
+    # Ej
