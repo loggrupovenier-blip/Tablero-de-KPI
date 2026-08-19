@@ -279,15 +279,25 @@ def listar_acciones():
 @app.route('/api/accion', methods=['POST'])
 def crear_accion_route():
     data = request.json
-    accion_id = crear_accion(data)
-    return jsonify({'id': accion_id})
+    try:
+        accion_id = crear_accion(data)
+        return jsonify({'id': accion_id})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/accion/<int:accion_id>', methods=['PUT'])
 def actualizar_accion_route(accion_id):
     data = request.json
-    actualizar_accion(accion_id, data)
-    return jsonify({'ok': True})
+    try:
+        actualizar_accion(accion_id, data)
+        return jsonify({'ok': True})
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/api/accion/<int:accion_id>', methods=['DELETE'])
