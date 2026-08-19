@@ -21,6 +21,7 @@ from db import (
 from dates import obtener_estructura_periodos
 
 app = Flask(__name__)
+init_db()
 
 
 def calcular_valor_agregado(valores_diarios, calculo):
