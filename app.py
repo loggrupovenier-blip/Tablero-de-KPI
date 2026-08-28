@@ -673,3 +673,12 @@ def plantilla_valores():
         for cell in row:
             cell.alignment = Alignment(horizontal="left", vertical="center")
     ws_inst.column_dimensions['A'].width = 60
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name='plantilla_valores_kpi.xlsx'
+    )
