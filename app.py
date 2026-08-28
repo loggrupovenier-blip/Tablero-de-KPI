@@ -60,17 +60,17 @@ def agregar_valores_periodo(kpi, periodo, valores_diarios_obj, valores_diarios_r
             try:
                 vals_obj.append(float(v_obj))
             except (TypeError, ValueError):
-                print(f"Valor OBJ no numérico ignorado - KPI {kpi.get('id')} fecha {dia_key}: {v_obj!r}")
+                pass
         if v_real is not None and v_real != '':
             try:
                 vals_real.append(float(v_real))
             except (TypeError, ValueError):
-                print(f"Valor REAL no numérico ignorado - KPI {kpi.get('id')} fecha {dia_key}: {v_real!r}")
+                pass
         if v_gat is not None and v_gat != '':
             try:
                 vals_gatillo.append(float(v_gat))
             except (TypeError, ValueError):
-                print(f"Valor GATILLO no numérico ignorado - KPI {kpi.get('id')} fecha {dia_key}: {v_gat!r}")
+                pass
     
     obj_agregado = calcular_valor_agregado(vals_obj, calculo)
     real_agregado = calcular_valor_agregado(vals_real, calculo)
@@ -100,6 +100,8 @@ def api_tablero():
         year = int(request.args.get('year', datetime.now().year))
         tipo_reunion = request.args.get('tipo', 'diaria')
         periodos, meses_unicos = obtener_estructura_periodos(year, tipo_reunion)
+        
+        # Convertir periodos a JSON serializable
         periodos_json = []
         for p in periodos:
             periodos_json.append({
