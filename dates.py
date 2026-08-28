@@ -70,7 +70,7 @@ def obtener_estructura_periodos(year, tipo_reunion):
             nombre = f"Sem {num_semana} ({inicio.strftime('%d/%m')}-{fin.strftime('%d/%m')})"
             periodos.append({
                 'nombre': nombre,
-                'nombre_sub': '',
+                'nombre_sub': '',  # Siempre string vacío para semanal
                 'fecha_inicio': inicio,
                 'fecha_fin': fin,
                 'dias': dias_list,
@@ -82,7 +82,7 @@ def obtener_estructura_periodos(year, tipo_reunion):
             nombre = MESES_ES_CAP[month-1] + f" {year}"
             periodos.append({
                 'nombre': nombre,
-                'nombre_sub': '',
+                'nombre_sub': '',  # Siempre string vacío para mensual
                 'fecha_inicio': dias_list[0],
                 'fecha_fin': dias_list[-1],
                 'dias': dias_list,
