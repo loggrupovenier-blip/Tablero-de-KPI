@@ -25,11 +25,14 @@ init_db()
 
 
 def calcular_valor_agregado(valores_diarios, calculo):
+    """Calcula el valor agregado de una lista de valores numéricos."""
     if not valores_diarios:
         return None
     if calculo == 'suma':
         return sum(valores_diarios)
     elif calculo == 'promedio':
+        if len(valores_diarios) == 0:
+            return None
         return sum(valores_diarios) / len(valores_diarios)
     elif calculo == 'maximo':
         return max(valores_diarios)
@@ -37,6 +40,7 @@ def calcular_valor_agregado(valores_diarios, calculo):
 
 
 def agregar_valores_periodo(kpi, periodo, valores_diarios_obj, valores_diarios_real, valores_diarios_gatillo):
+    """Agrega los valores de un período para un KPI."""
     dias_del_periodo = periodo['dias']
     calculo = kpi['calculo']
     
@@ -49,18 +53,19 @@ def agregar_valores_periodo(kpi, periodo, valores_diarios_obj, valores_diarios_r
         v_obj = valores_diarios_obj.get(dia_key)
         v_real = valores_diarios_real.get(dia_key)
         v_gat = valores_diarios_gatillo.get(dia_key)
-        # Se descartan valores no numéricos/corruptos en vez de romper todo el tablero
-        if v_obj is not None:
+        
+        # Validar y convertir valores numéricos
+        if v_obj is not None and v_obj != '':
             try:
                 vals_obj.append(float(v_obj))
             except (TypeError, ValueError):
                 print(f"Valor OBJ no numérico ignorado - KPI {kpi.get('id')} fecha {dia_key}: {v_obj!r}")
-        if v_real is not None:
+        if v_real is not None and v_real != '':
             try:
                 vals_real.append(float(v_real))
             except (TypeError, ValueError):
                 print(f"Valor REAL no numérico ignorado - KPI {kpi.get('id')} fecha {dia_key}: {v_real!r}")
-        if v_gat is not None:
+        if v_gat is not None and v_gat != '':
             try:
                 vals_gatillo.append(float(v_gat))
             except (TypeError, ValueError):
