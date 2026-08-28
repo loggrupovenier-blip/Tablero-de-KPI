@@ -1,4 +1,4 @@
-import os 
+import os
 import webbrowser
 from threading import Timer
 from flask import Flask, render_template, request, jsonify, send_file
@@ -49,7 +49,8 @@ def agregar_valores_periodo(kpi, periodo, valores_diarios_obj, valores_diarios_r
     vals_gatillo = []
     
     for dia in dias_del_periodo:
-        dia_key = dia.date().isoformat()
+        # dia ya es un string ISO desde que se serializó en api_tablero
+        dia_key = dia
         v_obj = valores_diarios_obj.get(dia_key)
         v_real = valores_diarios_real.get(dia_key)
         v_gat = valores_diarios_gatillo.get(dia_key)
@@ -146,13 +147,13 @@ def api_tablero():
             gatillo_por_periodo = {}
             
             if tipo_reunion == 'diaria':
-                for p in periodos:
-                    fecha_key = p['fecha_inicio'].date().isoformat()
+                for p in periodos_json:
+                    fecha_key = p['fecha_inicio']
                     obj_por_periodo[fecha_key] = obj_guardado.get(fecha_key, '')
                     real_por_periodo[fecha_key] = real_guardado.get(fecha_key, '')
                     gatillo_por_periodo[fecha_key] = gatillo_guardado.get(fecha_key, '')
             else:
-                for p in periodos:
+                for p in periodos_json:
                     try:
                         obj_calc, real_calc, gatillo_calc = agregar_valores_periodo(
                             kpi, p, obj_guardado, real_guardado, gatillo_guardado
@@ -162,7 +163,7 @@ def api_tablero():
                         traceback.print_exc()
                         print(f"Error agregando periodo '{p.get('nombre')}' del KPI {kpi.get('id')}: {e}")
                         obj_calc = real_calc = gatillo_calc = None
-                    fecha_key = p['fecha_inicio'].date().isoformat()
+                    fecha_key = p['fecha_inicio']
                     obj_por_periodo[fecha_key] = obj_calc if obj_calc is not None else ''
                     real_por_periodo[fecha_key] = real_calc if real_calc is not None else ''
                     gatillo_por_periodo[fecha_key] = gatillo_calc if gatillo_calc is not None else ''
@@ -708,3 +709,8 @@ def plantilla_valores():
         as_attachment=True,
         download_name='plantilla_valores_kpi.xlsx'
     )
+
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(debug=True, host='0.0.0.0', port=port)
